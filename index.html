@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Céleste Café — Artisan Menu</title>
+    <meta
+      name="description"
+      content="Premium mobile-first digital menu for Céleste Café built with vanilla HTML, CSS, JavaScript, and GSAP."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="splash-screen hidden" id="splashScreen" aria-hidden="true">
+        <div class="splash-screen__inner">
+          <p class="splash-screen__tag">Artisan Crêpes · Specialty Coffee · Premium Experience</p>
+        </div>
+      </div>
+
+      <div class="backdrop hidden" id="backdrop"></div>
+
+      <main class="app" id="app">
+        <header class="header glass-panel">
+          <div class="header__top">
+            <div class="brand">
+              <div>
+                <p class="eyebrow">Maison artisanale</p>
+                <h1>Céleste Café</h1>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero">
+            <div>
+              <p class="eyebrow">Curated digital menu</p>
+              <h2>Handcrafted indulgence, elevated for mobile.</h2>
+            </div>
+            <p class="hero__copy">
+              Explore refined crêpes, signature beverages, and gourmet waffle creations with fluid touch-first interactions.
+            </p>
+          </div>
+
+          <nav class="category-nav" aria-label="Menu categories">
+            <div class="category-nav__track" id="categoryFilters"></div>
+          </nav>
+        </header>
+
+        <section class="menu-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Seasonal selection</p>
+              <h3 id="resultsTitle">All Menu</h3>
+            </div>
+            <p class="section-heading__meta" id="resultsCount">0 items</p>
+          </div>
+
+          <div class="product-list" id="productList" aria-live="polite"></div>
+        </section>
+      </main>
+
+      <aside class="bottom-sheet" id="bottomSheet" aria-hidden="true" aria-labelledby="sheetTitle" role="dialog">
+        <div class="bottom-sheet__handle" id="sheetHandle"></div>
+        <button class="bottom-sheet__close" id="sheetClose" type="button" aria-label="Close product details">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4 6.4 5Z" />
+          </svg>
+        </button>
+
+        <div class="bottom-sheet__media-wrap">
+          <img id="sheetImage" class="bottom-sheet__image" src="" alt="" />
+        </div>
+
+        <div class="bottom-sheet__content">
+          <div class="bottom-sheet__intro">
+            <div>
+              <p class="eyebrow" id="sheetCategory"></p>
+              <h4 id="sheetTitle"></h4>
+            </div>
+            <span class="price-pill" id="sheetPrice"></span>
+          </div>
+
+          <p class="bottom-sheet__description" id="sheetDescription"></p>
+
+          <section class="extras" id="extrasSection">
+            <div class="extras__header">
+              <h5>Extras</h5>
+              <span>Customize your order</span>
+            </div>
+            <div class="extras__list" id="extrasList"></div>
+          </section>
+
+          <div class="sheet-footer">
+            <div class="quantity-selector" aria-label="Quantity selector">
+              <button type="button" id="decreaseQty" aria-label="Decrease quantity">−</button>
+              <span id="quantityValue">1</span>
+              <button type="button" id="increaseQty" aria-label="Increase quantity">+</button>
+            </div>
+
+            <button type="button" class="cta-button" id="addToOrderBtn">
+              Add to order
+              <span id="ctaTotal">$0.00</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
