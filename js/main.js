@@ -1,18 +1,19 @@
 /* ==========================================================================
    main.js — Mehdi Crêpes & Drinks — behavior
    --------------------------------------------------------------------------
-   This is a browse-only digital menu: the client scrolls, taps a dish to
-   see its details/extras, then shows the screen to staff at the counter
-   to order. There is no cart, no checkout, no persisted state — by design.
+   The client browses, adds dishes to a cart (from the card's + stepper or
+   from the detail sheet with extras), reviews the cart, then taps
+   "Commander via WhatsApp" — which opens a pre-filled WhatsApp chat to the
+   shop's number with the full order, so a human barista confirms it.
 
-   Sections below:
-   1. Icon set            — inline SVG, zero broken-asset risk
-   2. Hero                — background photo swap + scroll cue
-   3. Level-1 filter       — category row, always visible
-   4. Level-2 filter       — sub-category row, hidden until a category
-                             has been chosen (this was the reported bug)
-   5. Product grid         — photo-first cards, "Populaire" ribbon support
-   6. Detail sheet         — description, extras, live total, no cart
+   Sections:
+   1. Icon set
+   2. Cart state + WhatsApp message builder
+   3. Hero
+   4. Level-1 / level-2 filters
+   5. Product grid — card has its own quick-add stepper (no sheet needed)
+   6. Detail sheet — description, extras, qty, "Ajouter au panier"
+   7. Cart bar + cart sheet
    ========================================================================== */
 
 const Icons = {
@@ -24,17 +25,39 @@ const Icons = {
   chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>`,
   close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7"/></svg>`,
-  star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.7 6.1 6.6.6-5 4.4 1.5 6.5L12 16.9l-5.8 3.5 1.5-6.5-5-4.4 6.6-.6z"/></svg>`
+  star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.7 6.1 6.6.6-5 4.4 1.5 6.5L12 16.9l-5.8 3.5 1.5-6.5-5-4.4 6.6-.6z"/></svg>`,
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+  minus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+  bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>`,
+  whatsapp: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1s-.7.8-.9 1c-.2.2-.3.2-.6.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5L9 9c-.1-.2-.6-1.5-.9-2-.2-.6-.5-.5-.6-.5h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3.9 2.6 1.1 2.8.1.2 2 3.1 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3Z"/></svg>`
+};
+
+// Global fallback: if a real photo 404s, swap the card thumbnail for the
+// matching line-icon instead of showing a broken-image glyph. Exposed on
+// window because it's called from an inline onerror="" attribute.
+window.handleThumbError = function (imgEl, iconKey) {
+  imgEl.onerror = null;
+  const wrap = imgEl.closest(".card-thumb");
+  if (!wrap) return;
+  wrap.classList.remove("has-photo");
+  wrap.innerHTML = `<span class="card-thumb-icon">${Icons[iconKey]}</span>`;
+};
+
+window.handleSheetPhotoError = function (imgEl, iconKey) {
+  imgEl.onerror = null;
+  const hero = imgEl.closest(".sheet-hero");
+  const wrap = document.getElementById("sheetImg");
+  if (hero) hero.classList.remove("has-photo");
+  if (wrap) wrap.innerHTML = Icons[iconKey];
 };
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const state = {
-    group: null, // nothing selected until the client taps a category
-    sub: null
-  };
+  const state = { group: null, sub: null };
+  const cart = []; // { key, itemId, name, unitBase, extras:[{id,label,price}], qty }
 
-  // ---- DOM refs ----------------------------------------------------------
+  // ---- DOM refs ------------------------------------------------------------
   const heroImg = document.getElementById("heroImg");
   const heroSub = document.getElementById("heroSub");
   const scrollCue = document.getElementById("scrollCue");
@@ -60,13 +83,102 @@ document.addEventListener("DOMContentLoaded", () => {
   const sheetAddBtn = document.getElementById("sheetAddBtn");
   const sheetAddPrice = document.getElementById("sheetAddPrice");
 
+  const cartBar = document.getElementById("cartBar");
+  const cartBarCount = document.getElementById("cartBarCount");
+  const cartBarTotal = document.getElementById("cartBarTotal");
+
+  const cartOverlay = document.getElementById("cartOverlay");
+  const cartSheet = document.getElementById("cartSheet");
+  const cartCloseBtn = document.getElementById("cartCloseBtn");
+  const cartLines = document.getElementById("cartLines");
+  const cartSheetEmpty = document.getElementById("cartSheetEmpty");
+  const cartSheetTotal = document.getElementById("cartSheetTotal");
+  const cartClearBtn = document.getElementById("cartClearBtn");
+  const whatsappBtn = document.getElementById("whatsappBtn");
+
+  const toast = document.getElementById("toast");
+
   let activeItem = null;
   let activeQty = 1;
   let activeExtras = new Set();
 
-  // ==========================================================================
-  // 2. HERO
-  // ==========================================================================
+  /* ==========================================================================
+     2. CART — state, merge-by-signature, totals, WhatsApp message
+     ========================================================================== */
+  function lineSignature(itemId, extraIds) {
+    return itemId + "|" + [...extraIds].sort().join(",");
+  }
+
+  function addToCart(item, qty, extras) {
+    const extraIds = extras.map(e => e.id);
+    const key = lineSignature(item.id, extraIds);
+    const existing = cart.find(l => l.key === key);
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      cart.push({
+        key,
+        itemId: item.id,
+        name: item.name,
+        unitBase: item.price,
+        extras,
+        qty
+      });
+    }
+    renderCartBar();
+  }
+
+  function setLineQty(key, qty) {
+    const line = cart.find(l => l.key === key);
+    if (!line) return;
+    if (qty <= 0) {
+      const idx = cart.indexOf(line);
+      cart.splice(idx, 1);
+    } else {
+      line.qty = qty;
+    }
+    renderCartBar();
+  }
+
+  function plainQty(itemId) {
+    const line = cart.find(l => l.key === lineSignature(itemId, []));
+    return line ? line.qty : 0;
+  }
+
+  function lineUnit(line) {
+    return line.unitBase + line.extras.reduce((s, e) => s + e.price, 0);
+  }
+
+  function cartCount() {
+    return cart.reduce((s, l) => s + l.qty, 0);
+  }
+
+  function cartTotal() {
+    return cart.reduce((s, l) => s + lineUnit(l) * l.qty, 0);
+  }
+
+  function buildWhatsAppMessage() {
+    const lines = cart.map(l => {
+      const extraTxt = l.extras.length ? ` (${l.extras.map(e => e.label).join(", ")})` : "";
+      return `• ${l.qty}× ${l.name}${extraTxt} — ${lineUnit(l) * l.qty} dh`;
+    });
+    const msg =
+      `Bonjour ${shopConfig.name} 👋\n\nJe voudrais commander :\n` +
+      lines.join("\n") +
+      `\n\nTotal : ${cartTotal()} dh\n\n(Commande envoyée depuis le menu digital)`;
+    return msg;
+  }
+
+  function openWhatsAppCheckout() {
+    if (!cart.length) return;
+    const text = encodeURIComponent(buildWhatsAppMessage());
+    const url = `https://wa.me/${shopConfig.whatsapp}?text=${text}`;
+    window.open(url, "_blank", "noopener");
+  }
+
+  /* ==========================================================================
+     3. HERO
+     ========================================================================== */
   function setHeroImage(group) {
     const src = groupMeta[group].image;
     heroImg.onerror = () => {
@@ -77,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
     heroImg.src = src;
     heroImg.alt = groupMeta[group].label;
     if (window.gsap) gsap.fromTo(heroImg, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" });
-    heroSub.textContent = "Sélection " + groupMeta[group].label.toLowerCase() + " — montrez votre choix au comptoir pour commander.";
+    heroSub.textContent = "Sélection " + groupMeta[group].label.toLowerCase() + " — ajoutez au panier et commandez via WhatsApp.";
   }
 
   scrollCue.addEventListener("click", () => {
@@ -98,9 +210,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ==========================================================================
-  // 3. LEVEL-1 FILTER — category row, always visible
-  // ==========================================================================
+  /* ==========================================================================
+     4. FILTERS
+     ========================================================================== */
   function renderGroupBar() {
     groupBar.innerHTML = groupOrder.map(g => {
       const meta = groupMeta[g];
@@ -127,11 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ==========================================================================
-  // 4. LEVEL-2 FILTER — sub-category row
-  // Hidden completely (display: none via CSS) until state.group is set, then
-  // revealed with a short fade/slide the first time only.
-  // ==========================================================================
   function renderSubBar(animateReveal) {
     if (!state.group) {
       subBar.classList.remove("is-visible");
@@ -177,34 +284,51 @@ document.addEventListener("DOMContentLoaded", () => {
     return "crepe";
   }
 
-  // ==========================================================================
-  // 5. PRODUCT GRID
-  // ==========================================================================
+  /* ==========================================================================
+     5. PRODUCT GRID — card has its own quick-add stepper
+     ========================================================================== */
   function thumbHTML(item) {
-    if (item.image) return `<img src="${item.image}" alt="" loading="lazy">`;
+    if (item.image) {
+      return `<img src="${item.image}" alt="" loading="lazy" onerror="window.handleThumbError(this, '${iconFor(item)}')">`;
+    }
     return `<span class="card-thumb-icon">${Icons[iconFor(item)]}</span>`;
+  }
+
+  function cardSideHTML(item) {
+    const qty = plainQty(item.id);
+    if (qty > 0) {
+      return `
+        <span class="card-price">${item.price}<small> dh</small></span>
+        <span class="card-stepper" data-stepper-for="${item.id}">
+          <button class="card-stepper-btn" data-qtybtn="minus" data-item="${item.id}" aria-label="Retirer">${Icons.minus}</button>
+          <span class="card-stepper-value">${qty}</span>
+          <button class="card-stepper-btn" data-qtybtn="plus" data-item="${item.id}" aria-label="Ajouter">${Icons.plus}</button>
+        </span>`;
+    }
+    return `
+      <span class="card-price">${item.price}<small> dh</small></span>
+      <button class="card-add-btn" data-quickadd="${item.id}" aria-label="Ajouter ${item.name}">${Icons.plus}</button>`;
   }
 
   function cardHTML(item) {
     return `
-      <button class="card" data-id="${item.id}">
-        <span class="card-thumb ${item.image ? "has-photo" : ""}">
-          ${thumbHTML(item)}
-          ${item.popular ? `<span class="card-ribbon">${Icons.star}Populaire</span>` : ""}
+      <div class="card" data-id="${item.id}">
+        <button class="card-open" data-open="${item.id}" aria-label="Voir ${item.name}">
+          <span class="card-thumb ${item.image ? "has-photo" : ""}">
+            ${thumbHTML(item)}
+            ${item.popular ? `<span class="card-ribbon">${Icons.star}Populaire</span>` : ""}
+          </span>
+          <span class="card-body">
+            <span class="card-name">${item.name}</span>
+            <span class="card-desc">${item.desc}</span>
+          </span>
+        </button>
+        <span class="card-side" data-side-for="${item.id}">
+          ${cardSideHTML(item)}
         </span>
-        <span class="card-body">
-          <span class="card-name">${item.name}</span>
-          <span class="card-desc">${item.desc}</span>
-        </span>
-        <span class="card-side">
-          <span class="card-price">${item.price}<small> dh</small></span>
-          <span class="card-chevron" aria-hidden="true">${Icons.chevron}</span>
-        </span>
-      </button>`;
+      </div>`;
   }
 
-  // Ornamental rule used to separate the sucré / salé sub-groups —
-  // the small centered diamond is the menu's recurring signature mark.
   function sectionHeadingHTML(label) {
     return `<h2 class="section-heading"><span>${label}</span><i class="section-heading-rule" aria-hidden="true"></i></h2>`;
   }
@@ -238,14 +362,58 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<p class="empty-state">Aucun article ici pour le moment.</p>`;
     }
 
-    menuSection.querySelectorAll(".card").forEach(card => {
-      card.addEventListener("click", () => {
-        const item = menuData.find(i => i.id === card.dataset.id);
+    bindCardEvents();
+    animateListIn();
+  }
+
+  function bindCardEvents() {
+    menuSection.querySelectorAll("[data-open]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = menuData.find(i => i.id === btn.dataset.open);
         if (item) openSheet(item);
       });
     });
 
-    animateListIn();
+    menuSection.querySelectorAll("[data-quickadd]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const item = menuData.find(i => i.id === btn.dataset.quickadd);
+        if (!item) return;
+        addToCart(item, 1, []);
+        refreshCardSide(item.id);
+        showToast(`${item.name} ajouté`);
+      });
+    });
+
+    bindStepperEvents();
+  }
+
+  function bindStepperEvents() {
+    menuSection.querySelectorAll("[data-qtybtn]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const itemId = btn.dataset.item;
+        const item = menuData.find(i => i.id === itemId);
+        if (!item) return;
+        const key = lineSignature(itemId, []);
+        const current = plainQty(itemId);
+        if (btn.dataset.qtybtn === "plus") {
+          if (current === 0) addToCart(item, 1, []);
+          else setLineQty(key, current + 1);
+        } else {
+          setLineQty(key, current - 1);
+        }
+        refreshCardSide(itemId);
+      });
+    });
+  }
+
+  function refreshCardSide(itemId) {
+    const side = menuSection.querySelector(`[data-side-for="${itemId}"]`);
+    const item = menuData.find(i => i.id === itemId);
+    if (!side || !item) return;
+    side.innerHTML = cardSideHTML(item);
+    bindStepperEvents();
+    const newBtn = side.querySelector(".card-add-btn, .card-stepper");
+    if (window.gsap && newBtn) gsap.fromTo(newBtn, { scale: 0.8 }, { scale: 1, duration: 0.25, ease: "back.out(3)" });
   }
 
   function animateListIn() {
@@ -257,9 +425,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ==========================================================================
-  // 6. DETAIL SHEET — informational only, no cart
-  // ==========================================================================
+  /* ==========================================================================
+     6. DETAIL SHEET — description, extras, qty, "Ajouter au panier"
+     ========================================================================== */
   function openSheet(item) {
     activeItem = item;
     activeQty = 1;
@@ -267,7 +435,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (item.image) {
       sheetHero.classList.add("has-photo");
-      sheetImg.innerHTML = `<img src="${item.image}" alt="${item.name}">`;
+      sheetImg.innerHTML = `<img src="${item.image}" alt="${item.name}" onerror="window.handleSheetPhotoError(this, '${iconFor(item)}')">`;
     } else {
       sheetHero.classList.remove("has-photo");
       sheetImg.innerHTML = Icons[iconFor(item)];
@@ -342,16 +510,138 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSheetTotal();
   });
 
-  sheetAddBtn.addEventListener("click", closeSheet);
+  sheetAddBtn.addEventListener("click", () => {
+    if (!activeItem) return;
+    const chosenExtras = [...activeExtras].map(id => extrasCatalog.find(e => e.id === id));
+    addToCart(activeItem, activeQty, chosenExtras);
+    refreshCardSide(activeItem.id);
+    showToast(`${activeItem.name} ajouté au panier`);
+    closeSheet();
+  });
+
   sheetClose.addEventListener("click", closeSheet);
   overlay.addEventListener("click", closeSheet);
-  document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { closeSheet(); closeCartSheet(); } });
 
-  // ==========================================================================
-  // INIT
-  // ==========================================================================
+  /* ==========================================================================
+     7. CART BAR + CART SHEET
+     ========================================================================== */
+  function renderCartBar() {
+    const count = cartCount();
+    if (count > 0) {
+      cartBar.classList.add("is-visible");
+      cartBarCount.textContent = count;
+      cartBarTotal.textContent = cartTotal() + " dh";
+      if (window.gsap) gsap.fromTo(cartBar, { y: 8, opacity: 0.6 }, { y: 0, opacity: 1, duration: 0.25, ease: "power2.out" });
+    } else {
+      cartBar.classList.remove("is-visible");
+    }
+    if (cartSheet.classList.contains("is-open")) renderCartSheet();
+  }
+
+  function renderCartSheet() {
+    if (!cart.length) {
+      cartLines.innerHTML = "";
+      cartSheetEmpty.style.display = "block";
+      cartSheetTotal.textContent = "0 dh";
+      whatsappBtn.classList.add("is-disabled");
+      return;
+    }
+    cartSheetEmpty.style.display = "none";
+    whatsappBtn.classList.remove("is-disabled");
+
+    cartLines.innerHTML = cart.map(line => `
+      <div class="cart-line">
+        <div class="cart-line-main">
+          <span class="cart-line-name">${line.name}</span>
+          ${line.extras.length ? `<span class="cart-line-extras">${line.extras.map(e => e.label).join(", ")}</span>` : ""}
+          <span class="cart-line-unit">${lineUnit(line)} dh l'unité</span>
+        </div>
+        <div class="cart-line-right">
+          <div class="card-stepper">
+            <button class="card-stepper-btn" data-cartminus="${line.key}" aria-label="Retirer">${Icons.minus}</button>
+            <span class="card-stepper-value">${line.qty}</span>
+            <button class="card-stepper-btn" data-cartplus="${line.key}" aria-label="Ajouter">${Icons.plus}</button>
+          </div>
+          <span class="cart-line-price">${lineUnit(line) * line.qty} dh</span>
+        </div>
+      </div>
+    `).join("");
+
+    cartLines.querySelectorAll("[data-cartplus]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const line = cart.find(l => l.key === btn.dataset.cartplus);
+        if (line) setLineQty(line.key, line.qty + 1);
+        renderCartBar();
+        if (line) refreshCardSide(line.itemId);
+      });
+    });
+    cartLines.querySelectorAll("[data-cartminus]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const line = cart.find(l => l.key === btn.dataset.cartminus);
+        if (line) setLineQty(line.key, line.qty - 1);
+        renderCartBar();
+        if (line) refreshCardSide(line.itemId);
+      });
+    });
+
+    cartSheetTotal.textContent = cartTotal() + " dh";
+  }
+
+  function openCartSheet() {
+    renderCartSheet();
+    cartSheet.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+    gsap.set(cartOverlay, { pointerEvents: "auto" });
+    gsap.to(cartOverlay, { opacity: 1, duration: 0.25 });
+    gsap.to(cartSheet, { y: "0%", duration: 0.45, ease: "power3.out" });
+  }
+
+  function closeCartSheet() {
+    if (!cartSheet.classList.contains("is-open")) return;
+    cartSheet.classList.remove("is-open");
+    document.body.style.overflow = "";
+    gsap.to(cartOverlay, { opacity: 0, duration: 0.2, onComplete: () => gsap.set(cartOverlay, { pointerEvents: "none" }) });
+    gsap.to(cartSheet, { y: "100%", duration: 0.35, ease: "power3.in" });
+  }
+
+  cartBar.addEventListener("click", openCartSheet);
+  cartCloseBtn.addEventListener("click", closeCartSheet);
+  cartOverlay.addEventListener("click", closeCartSheet);
+  cartClearBtn.addEventListener("click", () => {
+    cart.length = 0;
+    renderCartBar();
+    renderList();
+  });
+  whatsappBtn.addEventListener("click", openWhatsAppCheckout);
+
+  /* ---- Toast ----------------------------------------------------------- */
+  let toastTimer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    clearTimeout(toastTimer);
+    if (window.gsap) {
+      gsap.killTweensOf(toast);
+      gsap.set(toast, { display: "flex" });
+      gsap.fromTo(toast, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: "power2.out" });
+    } else {
+      toast.style.display = "flex";
+    }
+    toastTimer = setTimeout(() => {
+      if (window.gsap) {
+        gsap.to(toast, { y: 16, opacity: 0, duration: 0.25, ease: "power2.in", onComplete: () => gsap.set(toast, { display: "none" }) });
+      } else {
+        toast.style.display = "none";
+      }
+    }, 1600);
+  }
+
+  /* ==========================================================================
+     INIT
+     ========================================================================== */
   renderGroupBar();
   renderSubBar(false);
   renderList();
+  renderCartBar();
   bounceScrollCue();
 });

@@ -27,10 +27,19 @@
                         zero other code changes.
    ========================================================================== */
 
+// ---- Shop identity & checkout ---------------------------------------------
+// WhatsApp number in international format, digits only, NO leading "+".
+// Example: a Morocco mobile 06 12 34 56 78 becomes "212612345678".
+// >>> REPLACE THIS with the real shop number before going live. <<<
+const shopConfig = {
+  name: "Mehdi Crêpes & Drinks",
+  whatsapp: "212600000000"
+};
+
 // ---- Level-1 groups (top filter row) -------------------------------------
 const groupMeta = {
   crepe:  { label: "Crêpes",   icon: "crepe", image: "assets/images/creep.jpg" },
-  drinks: { label: "Boissons", icon: "cup",   image: "assets/images/drin k.jpg" }
+  drinks: { label: "Boissons", icon: "cup",   image: "assets/images/drink.jpg" }
 };
 const groupOrder = ["crepe", "drinks"];
 
@@ -133,7 +142,7 @@ const rawMenuData = [
 ];
 
 const menuData = rawMenuData.map((item, i) => {
-  const fallbackImage = item.group === "drinks" ? "assets/images/drin k.jpg" : "assets/images/creep.jpg";
+  const fallbackImage = item.group === "drinks" ? "assets/images/drink.jpg" : "assets/images/creep.jpg";
   return {
     id: "item-" + i,
     extras: false,

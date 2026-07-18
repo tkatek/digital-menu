@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#241221">
 <title>Mehdi — Crêpes &amp; Drinks</title>
 <meta name="description" content="Carte digitale de Mehdi Crêpes & Drinks — crêpes, gouffres et boissons préparés minute à Marrakech.">
@@ -45,7 +45,7 @@
           <span class="hero-line"></span>
         </div>
         <h1 class="hero-title">Mehdi<br><em>Crêpes &amp; Drinks</em></h1>
-        <p class="hero-sub" id="heroSub">Café de spécialité, crêpes garnies et boissons fraîches, préparés à la minute sur place.</p>
+        <p class="hero-sub" id="heroSub">Café de spécialité, crêpes garnies et boissons fraîches — ajoutez au panier et commandez via WhatsApp.</p>
       </div>
 
       <button class="hero-scroll-cue" id="scrollCue" aria-label="Voir le menu">
@@ -63,7 +63,7 @@
     <footer class="site-footer">
       <span class="footer-line"></span>
       <p>Prix en dirhams (dh)</p>
-      <p class="footer-hint">Montrez votre choix à notre équipe au comptoir pour commander</p>
+      <p class="footer-hint">Ajoutez vos plats au panier et commandez via WhatsApp</p>
     </footer>
   </div>
 
@@ -105,13 +105,56 @@
     </div>
 
     <div class="sheet-footer">
-      <p class="sheet-hint">Montrez cet écran à notre équipe pour commander</p>
+      <p class="sheet-hint">Choisissez vos extras et la quantité, puis ajoutez au panier</p>
       <button class="sheet-cta" id="sheetAddBtn">
-        <span>Fermer</span>
+        <span>Ajouter au panier</span>
         <span class="sheet-cta-price" id="sheetAddPrice">0 dh</span>
       </button>
     </div>
   </div>
+
+  <!-- ============ Cart bar (appears once the cart has items) ============ -->
+  <button class="cart-bar" id="cartBar" aria-label="Voir le panier">
+    <span class="cart-bar-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>
+      <span class="cart-bar-count" id="cartBarCount">0</span>
+    </span>
+    <span class="cart-bar-label">Voir le panier</span>
+    <span class="cart-bar-total" id="cartBarTotal">0 dh</span>
+  </button>
+
+  <!-- ============ Cart sheet ============ -->
+  <div class="overlay" id="cartOverlay"></div>
+  <div class="sheet sheet--cart" id="cartSheet" role="dialog" aria-modal="true" aria-labelledby="cartSheetTitle">
+    <div class="sheet-handle-row">
+      <h2 class="cart-sheet-title" id="cartSheetTitle">Votre panier</h2>
+      <button class="sheet-close sheet-close--static" id="cartCloseBtn" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet-scroll">
+      <p class="cart-sheet-empty" id="cartSheetEmpty">Votre panier est vide pour le moment.</p>
+      <div class="cart-lines" id="cartLines"></div>
+    </div>
+
+    <div class="sheet-footer sheet-footer--cart">
+      <div class="cart-total-row">
+        <button class="cart-clear" id="cartClearBtn">Vider le panier</button>
+        <div class="cart-total-amount">
+          <span>Total</span>
+          <strong id="cartSheetTotal">0 dh</strong>
+        </div>
+      </div>
+      <button class="whatsapp-cta" id="whatsappBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1s-.7.8-.9 1c-.2.2-.3.2-.6.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5L9 9c-.1-.2-.6-1.5-.9-2-.2-.6-.5-.5-.6-.5h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3.9 2.6 1.1 2.8.1.2 2 3.1 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3Z"/></svg>
+        <span>Commander via WhatsApp</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ Toast ============ -->
+  <div class="toast" id="toast"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="js/data.js"></script>
