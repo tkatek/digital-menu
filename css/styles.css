@@ -1,41 +1,61 @@
 /* ==========================================================================
    styles.css — Mehdi Crêpes & Drinks
-   Mobile-first premium menu. Desktop (min-width: 700px) centers the
-   experience and expands the product list into a grid.
+   --------------------------------------------------------------------------
+   Boutique-menu direction: warm plum ink on cream paper, a magenta accent
+   for interaction, and a gold-foil accent reserved for "premium" signals
+   (popular ribbons, dividers, the hero monogram). A faint paper-grain
+   overlay ties the digital menu back to a printed one.
+
+   Structure of this file:
+     1. Design tokens
+     2. Base / reset
+     3. Grain overlay
+     4. Hero
+     5. Filters (level 1 + level 2)
+     6. Category prompt (empty state before a filter is picked)
+     7. Product grid + card
+     8. Detail sheet
+     9. Footer
+     10. Motion / a11y
    ========================================================================== */
 
+/* ---- 1. Design tokens ----------------------------------------------------*/
 :root {
-  /* Palette — warm plum ink on cream, magenta accent, gold for crepe warmth */
+  /* Core palette — warm plum ink on cream, magenta accent */
   --ink: #241221;
   --ink-soft: #6f5f6c;
   --cream: #fdf8f6;
   --surface: #ffffff;
-  --line: rgba(36, 18, 33, 0.08);
+  --line: rgba(36, 18, 33, 0.09);
 
   --accent: #b21f66;
   --accent-dark: #7c1548;
   --accent-soft: #fbe4ee;
 
-  --gold: #b9793a;
+  /* Gold-foil — reserved for premium signals only (ribbons, dividers,
+     monogram ring) so it stays special instead of decorative noise */
+  --gold-1: #e7bd6b;
+  --gold-2: #a9732f;
+  --gold-foil: linear-gradient(120deg, var(--gold-1), var(--gold-2) 65%, var(--gold-1));
   --gold-soft: #f6e6d3;
 
   --chaude: #b5651d;
-  --chaude-soft: #f7e3cd;
   --froide: #1591a0;
-  --froide-soft: #dbf2f3;
 
-  --radius-xl: 28px;
+  --radius-xl: 30px;
   --radius-lg: 22px;
   --radius-md: 16px;
   --radius-sm: 12px;
 
-  --shadow-soft: 0 14px 34px rgba(36, 18, 33, 0.12);
-  --shadow-card: 0 6px 18px rgba(36, 18, 33, 0.08);
+  --shadow-soft: 0 18px 40px rgba(36, 18, 33, 0.16);
+  --shadow-card: 0 8px 22px rgba(36, 18, 33, 0.09);
+  --shadow-card-hover: 0 14px 30px rgba(36, 18, 33, 0.14);
 
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Plus Jakarta Sans", "Segoe UI", sans-serif;
 }
 
+/* ---- 2. Base / reset -------------------------------------------------------*/
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 
@@ -54,20 +74,35 @@ p { margin: 0; }
 
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-.app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--cream); }
+.app { position: relative; max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--cream); }
 @media (min-width: 700px) { .app { max-width: 900px; } }
 @media (min-width: 1100px) { .app { max-width: 1080px; } }
 
-/* ---- Hero (covers ~50% of viewport) ------------------------------------ */
+/* ---- 3. Grain overlay ------------------------------------------------------*/
+/* A very faint fractal-noise texture over the whole viewport — the thing
+   that makes a flat digital screen read as "paper menu" rather than a
+   generic app. Non-interactive, always on top, invisible unless you look. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- 4. Hero ---------------------------------------------------------------*/
 .hero {
   position: relative;
-  height: 52vh;
-  min-height: 340px;
-  max-height: 520px;
+  height: 46vh;
+  min-height: 320px;
+  max-height: 460px;
   overflow: hidden;
   display: flex;
-  align-items: flex-end;
-  background: linear-gradient(155deg, #3a1830 0%, #241221 65%);
+  flex-direction: column;
+  justify-content: space-between;
+  background: radial-gradient(120% 90% at 20% 0%, #472038 0%, #241221 60%);
 }
 
 .hero-img {
@@ -76,29 +111,79 @@ p { margin: 0; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: none; /* revealed once a category photo is set */
 }
 
 .hero-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(185deg, rgba(36,18,33,0.15) 0%, rgba(36,18,33,0.55) 65%, rgba(36,18,33,0.88) 100%);
+  background: linear-gradient(185deg, rgba(36,18,33,0.2) 0%, rgba(36,18,33,0.58) 62%, rgba(20,9,18,0.92) 100%);
+}
+
+/* Gold corner flourishes — thin hairline brackets, the recurring
+   "boutique menu" signature also echoed in the section dividers */
+.hero-frame {
+  position: absolute;
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  color: var(--gold-1);
+  opacity: 0.75;
+}
+.hero-frame--tl { top: 16px; left: 16px; }
+.hero-frame--br { bottom: 16px; right: 16px; }
+
+.hero-top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+.hero-monogram {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(231, 189, 107, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gold-1);
+  background: rgba(36, 18, 33, 0.35);
+  backdrop-filter: blur(6px);
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  padding: 24px 22px 26px;
+  padding: 0 24px 22px;
   color: #fff;
 }
 
+.hero-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.hero-line {
+  flex: 1;
+  max-width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(231,189,107,0.75));
+}
+.hero-kicker-row .hero-line:last-child { background: linear-gradient(90deg, rgba(231,189,107,0.75), transparent); }
+
 .hero-kicker {
-  display: inline-block;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 2.2px;
   text-transform: uppercase;
   color: #f0c9dc;
-  margin-bottom: 10px;
+  white-space: nowrap;
 }
 
 .hero-title {
@@ -107,51 +192,38 @@ p { margin: 0; }
   font-weight: 600;
   letter-spacing: -0.5px;
   margin-bottom: 12px;
-  text-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  text-shadow: 0 8px 28px rgba(0,0,0,0.3);
 }
+.hero-title em { font-style: italic; font-weight: 500; color: #f3d7c9; }
 
 .hero-sub {
   font-size: 14px;
-  line-height: 1.5;
-  color: rgba(255,255,255,0.82);
-  max-width: 34ch;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.85);
+  max-width: 38ch;
 }
 
-/* Floating cart badge on the hero */
-.cart-badge {
+.hero-scroll-cue {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 3;
-  display: none;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.16);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.28);
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.3);
+  backdrop-filter: blur(6px);
   color: #fff;
-  min-height: 44px;
-}
-.cart-badge.is-visible { display: inline-flex; }
-.cart-badge-icon { width: 20px; height: 20px; }
-.cart-badge-icon svg { width: 100%; height: 100%; }
-.cart-badge-count {
-  font-weight: 800;
-  font-size: 13px;
-  background: var(--accent);
-  color: #fff;
-  min-width: 20px;
-  height: 20px;
-  border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 5px;
+  padding: 7px;
 }
+.hero-scroll-cue svg { width: 100%; height: 100%; }
 
-/* ---- Filter rows --------------------------------------------------------*/
+/* ---- 5. Filters ------------------------------------------------------------*/
 .filter-row {
   display: flex;
   gap: 10px;
@@ -170,7 +242,11 @@ p { margin: 0; }
   padding-bottom: 6px;
 }
 
+/* Sub-filter row: hidden entirely until a category has been picked
+   (this was the reported bug — it used to show by default). Revealed
+   via .is-visible, added from JS the moment a category is chosen. */
 .filter-row--sub {
+  display: none;
   position: sticky;
   top: 62px;
   z-index: 14;
@@ -179,8 +255,10 @@ p { margin: 0; }
   padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
+.filter-row--sub.is-visible { display: flex; }
 
 .pill {
+  position: relative;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -194,7 +272,7 @@ p { margin: 0; }
   background: var(--surface);
   border: 1.5px solid var(--line);
   box-shadow: var(--shadow-card);
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
 }
 .pill:active { transform: scale(0.96); }
 .pill-icon { width: 18px; height: 18px; flex-shrink: 0; }
@@ -206,98 +284,201 @@ p { margin: 0; }
   background: linear-gradient(135deg, var(--accent), var(--accent-dark));
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 10px 20px rgba(178, 31, 102, 0.32);
+  box-shadow: 0 10px 22px rgba(178, 31, 102, 0.34);
+}
+.pill.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
 }
 
-/* ---- Product list -------------------------------------------------------*/
-.menu-section { padding: 6px 18px 130px; }
-
-.section-heading {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
+/* ---- 6. Category prompt ----------------------------------------------------*/
+.category-prompt {
+  text-align: center;
+  padding: 58px 30px 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.category-prompt-icon {
+  width: 62px;
+  height: 62px;
+  padding: 15px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  box-shadow: 0 0 0 1px var(--gold-1) inset, 0 10px 24px rgba(178,31,102,0.14);
+}
+.category-prompt-icon svg { width: 100%; height: 100%; }
+.category-prompt-title { font-size: 21px; font-weight: 600; }
+.category-prompt-text {
+  font-size: 14px;
+  line-height: 1.6;
   color: var(--ink-soft);
-  margin: 22px 2px 10px;
+  max-width: 30ch;
 }
-.section-heading:first-child { margin-top: 14px; }
+
+/* ---- 7. Product grid + card -------------------------------------------------*/
+.menu-section { padding: 8px 18px 64px; min-height: 40vh; }
+
+/* Ornamental section heading — a hairline rule with a small centered gold
+   diamond, echoing the hero's corner flourishes. Used to split sweet vs
+   savoury crêpes without resorting to a plain uppercase label. */
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 2px 14px;
+}
+.section-heading:first-child { margin-top: 16px; }
+.section-heading span {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  white-space: nowrap;
+}
+.section-heading-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
+  position: relative;
+}
+.section-heading-rule::after {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  width: 5px; height: 5px;
+  transform: translateY(-50%) rotate(45deg);
+  background: var(--gold-1);
+}
 
 .product-list {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 @media (min-width: 700px) { .product-list { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 1100px) { .product-list { grid-template-columns: 1fr 1fr 1fr; } }
 
+/* Bigger, photo-first card. The thumb is a real image slot: drop an
+   `image` field on a menu item in data.js and a real photo fills this
+   box automatically — until then it shows a soft icon placeholder. */
 .card {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px;
-  min-height: 88px;
+  gap: 16px;
+  padding: 14px;
+  min-height: 112px;
   background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--line);
   width: 100%;
   text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
 }
-.card:active { transform: scale(0.985); }
+.card:active { transform: scale(0.985); box-shadow: var(--shadow-card-hover); }
 
 .card-thumb {
+  position: relative;
   flex-shrink: 0;
-  width: 60px;
-  height: 60px;
+  width: 88px;
+  height: 88px;
   border-radius: var(--radius-md);
-  background: var(--accent-soft);
+  background: linear-gradient(150deg, var(--accent-soft), var(--gold-soft));
   color: var(--accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px;
+  overflow: hidden;
 }
-.card-thumb svg { width: 100%; height: 100%; }
+.card-thumb-icon { width: 42px; height: 42px; }
+.card-thumb-icon svg { width: 100%; height: 100%; }
+.card-thumb.has-photo { background: var(--line); }
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Gold-foil "Populaire" ribbon — the one flourish allowed to sit on a
+   card, reserved for genuine bestsellers flagged in data.js */
+.card-ribbon {
+  position: absolute;
+  top: 6px;
+  left: -6px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px 3px 6px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #3c2308;
+  background: var(--gold-foil);
+  border-radius: 0 5px 5px 0;
+  box-shadow: 0 3px 8px rgba(169, 115, 47, 0.4);
+}
+.card-ribbon svg { width: 9px; height: 9px; }
 
 .card-body {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .card-name {
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--ink);
-  white-space: nowrap;
+  line-height: 1.25;
+}
+
+.card-desc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.card-side {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 .card-price {
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--accent-dark);
+  white-space: nowrap;
 }
+.card-price small { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
 
-.card-add {
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+.card-chevron {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 7px;
 }
-.card-add svg { width: 100%; height: 100%; }
-.card-add:active { transform: scale(0.9); }
+.card-chevron svg { width: 100%; height: 100%; }
 
 .empty-state {
   text-align: center;
@@ -306,18 +487,11 @@ p { margin: 0; }
   font-weight: 700;
 }
 
-.site-footer {
-  text-align: center;
-  padding: 6px 20px 40px;
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-
-/* ---- Sheets (product + cart) --------------------------------------------*/
+/* ---- 8. Detail sheet ---------------------------------------------------------*/
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(24, 10, 22, 0.55);
+  background: rgba(24, 10, 22, 0.6);
   z-index: 40;
   opacity: 0;
   pointer-events: none;
@@ -330,8 +504,8 @@ p { margin: 0; }
   max-width: 480px;
   margin: 0 auto;
   background: var(--surface);
-  border-radius: 26px 26px 0 0;
-  box-shadow: 0 -20px 50px rgba(36, 18, 33, 0.28);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -22px 54px rgba(36, 18, 33, 0.3);
   transform: translateY(100%);
   max-height: 90vh;
   display: flex;
@@ -339,31 +513,78 @@ p { margin: 0; }
   overflow: hidden;
 }
 @media (min-width: 700px) {
-  .sheet { max-width: 440px; border-radius: 26px; bottom: 24px; }
+  .sheet { max-width: 440px; border-radius: 28px; bottom: 24px; }
 }
 
 .sheet-scroll { overflow-y: auto; flex: 1; }
 
 .sheet-hero {
   position: relative;
-  height: 190px;
+  height: 210px;
   flex-shrink: 0;
-  background: linear-gradient(160deg, var(--accent-soft), #fff);
+  background: radial-gradient(120% 100% at 30% 0%, var(--accent-soft), #fff 70%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.sheet-hero-icon { width: 96px; height: 96px; color: var(--accent-dark); }
+.sheet-hero.has-photo { background: var(--line); }
+.sheet-hero-scrim { display: none; }
+.sheet-hero.has-photo .sheet-hero-scrim {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(36,18,33,0.55) 0%, transparent 55%);
+}
+
+.sheet-hero-icon { width: 104px; height: 104px; color: var(--accent-dark); }
 .sheet-hero-icon svg { width: 100%; height: 100%; }
+.sheet-hero.has-photo .sheet-hero-icon { width: 100%; height: 100%; }
+.sheet-hero.has-photo .sheet-hero-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+.sheet-hero-tag {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(4px);
+}
+.sheet-hero.has-photo .sheet-hero-tag { color: #fff; background: rgba(36,18,33,0.4); }
+
+.sheet-popular-tag {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 60px;
+  z-index: 2;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #3c2308;
+  background: var(--gold-foil);
+  box-shadow: 0 4px 12px rgba(169,115,47,0.4);
+}
 
 .sheet-close {
   position: absolute;
   top: 14px;
   right: 14px;
+  z-index: 2;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.92);
   box-shadow: var(--shadow-card);
   display: flex;
   align-items: center;
@@ -372,42 +593,62 @@ p { margin: 0; }
   color: var(--ink);
 }
 .sheet-close svg { width: 100%; height: 100%; }
-.sheet-close--static { position: static; }
 
-.sheet-body { padding: 22px 22px 12px; }
+.sheet-body { padding: 22px 22px 8px; }
 
-.sheet-eyebrow {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--accent-dark);
-  margin-bottom: 6px;
-}
-
-.sheet-title {
-  font-size: 24px;
-  font-weight: 600;
+.sheet-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 10px;
+}
+.sheet-title {
+  font-size: 23px;
+  font-weight: 600;
   line-height: 1.2;
+}
+.sheet-price-tag {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .sheet-desc {
   font-size: 14.5px;
   line-height: 1.6;
   color: var(--ink-soft);
-  margin-bottom: 18px;
+  margin-bottom: 6px;
 }
 
-.sheet-extras { display: none; margin-bottom: 18px; }
-.sheet-extras-title {
-  font-size: 13px;
+.sheet-extras { display: none; margin-top: 18px; }
+
+.sheet-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.sheet-divider span {
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-bottom: 10px;
+  white-space: nowrap;
+}
+.sheet-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
 }
 
 .extra-list { display: flex; flex-direction: column; gap: 8px; }
@@ -429,16 +670,16 @@ p { margin: 0; }
 }
 
 .extra-check {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
   border: 1.5px solid var(--line);
   background: #fff;
   color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3px;
+  padding: 4px;
   flex-shrink: 0;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
@@ -456,7 +697,8 @@ p { margin: 0; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 0 4px;
+  padding: 18px 0 6px;
+  margin-top: 6px;
   border-top: 1px solid var(--line);
 }
 .qty-label { font-size: 14px; font-weight: 700; }
@@ -487,12 +729,20 @@ p { margin: 0; }
 
 .sheet-footer {
   flex-shrink: 0;
-  padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
+  padding: 12px 20px calc(16px + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--line);
 }
 
+.sheet-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+
 .sheet-cta {
+  position: relative;
   width: 100%;
   min-height: 52px;
   border-radius: 16px;
@@ -505,95 +755,40 @@ p { margin: 0; }
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  box-shadow: 0 12px 24px rgba(178, 31, 102, 0.35);
+  box-shadow: 0 12px 26px rgba(178, 31, 102, 0.36);
+  overflow: hidden;
+}
+.sheet-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
 }
 .sheet-cta:active { transform: scale(0.98); }
 
-/* ---- Cart sheet specifics ------------------------------------------------*/
-.sheet-handle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px 6px;
-  flex-shrink: 0;
-}
-.cart-title { font-size: 20px; font-weight: 600; }
-
-.cart-empty {
+/* ---- 9. Footer ---------------------------------------------------------------*/
+.site-footer {
   text-align: center;
-  padding: 50px 24px;
-  color: var(--ink-soft);
-  font-weight: 600;
-}
-
-.cart-list { padding: 4px 20px 12px; display: flex; flex-direction: column; gap: 10px; }
-
-.cart-line {
+  padding: 4px 20px 44px;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  background: var(--cream);
-}
-.cart-line-main { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.cart-line-name { font-size: 14px; font-weight: 700; }
-.cart-line-extras { font-size: 12px; color: var(--ink-soft); }
-.cart-line-price { font-size: 14px; font-weight: 700; color: var(--accent-dark); white-space: nowrap; }
-.cart-line-remove {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink-soft);
-  display: flex; align-items: center; justify-content: center;
-  padding: 6px;
-  flex-shrink: 0;
-}
-.cart-line-remove svg { width: 100%; height: 100%; }
-
-.sheet-footer--cart {
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 6px;
 }
-.cart-clear {
-  font-size: 13px;
-  font-weight: 700;
+.footer-line {
+  width: 46px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-1), transparent);
+  margin-bottom: 6px;
+}
+.site-footer p {
+  font-size: 12px;
   color: var(--ink-soft);
-  padding: 10px 6px;
-  min-height: 44px;
 }
-.cart-total {
-  flex: 1;
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 8px;
-}
-.cart-total span { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
-.cart-total strong { font-family: var(--font-display); font-size: 20px; color: var(--ink); }
+.footer-hint { font-weight: 600; color: var(--ink); font-size: 12.5px; }
 
-/* ---- Toast ---------------------------------------------------------------*/
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 26px;
-  transform: translateX(-50%);
-  z-index: 60;
-  display: none;
-  align-items: center;
-  padding: 12px 20px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 600;
-  box-shadow: var(--shadow-soft);
-  max-width: 86%;
-  text-align: center;
-}
-
+/* ---- 10. Motion / a11y ---------------------------------------------------------*/
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }

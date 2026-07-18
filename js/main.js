@@ -1,9 +1,18 @@
 /* ==========================================================================
    main.js — Mehdi Crêpes & Drinks — behavior
-   1. Icon set (inline SVG, no external icon font — zero broken-asset risk)
-   2. Two-level filter rendering (group -> sub) + product list
-   3. Product bottom sheet: extras checkboxes, qty stepper, live total
-   4. Order (cart) summary sheet
+   --------------------------------------------------------------------------
+   This is a browse-only digital menu: the client scrolls, taps a dish to
+   see its details/extras, then shows the screen to staff at the counter
+   to order. There is no cart, no checkout, no persisted state — by design.
+
+   Sections below:
+   1. Icon set            — inline SVG, zero broken-asset risk
+   2. Hero                — background photo swap + scroll cue
+   3. Level-1 filter       — category row, always visible
+   4. Level-2 filter       — sub-category row, hidden until a category
+                             has been chosen (this was the reported bug)
+   5. Product grid         — photo-first cards, "Populaire" ribbon support
+   6. Detail sheet         — description, extras, live total, no cart
    ========================================================================== */
 
 const Icons = {
@@ -12,35 +21,36 @@ const Icons = {
   cup: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9.5h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3.5c-.6.6-.6 1.4 0 2M12 3.5c-.6.6-.6 1.4 0 2"/></svg>`,
   flame: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.5 5 9.5a5 5 0 0 1-10 0c0-1.5.7-2.6 1.5-3.5.2 1.2 1 1.8 1.5 1.8-.3-2.5.8-5 2-7.8Z"/></svg>`,
   snow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4.5 6l15 12M19.5 6l-15 12"/><path d="M12 2 9.5 4.5M12 2l2.5 2.5M12 22l-2.5-2.5M12 22l2.5-2.5"/></svg>`,
-  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
-  minus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+  chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>`,
   close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
-  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7"/></svg>`,
-  bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>`,
-  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>`
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7"/></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.7 6.1 6.6.6-5 4.4 1.5 6.5L12 16.9l-5.8 3.5 1.5-6.5-5-4.4 6.6-.6z"/></svg>`
 };
 
 document.addEventListener("DOMContentLoaded", () => {
 
   const state = {
-    group: "crepe",
-    sub: "crepe",
-    cart: [] // { itemId, name, unitPrice, qty, extras:[{id,label,price}], lineTotal }
+    group: null, // nothing selected until the client taps a category
+    sub: null
   };
 
+  // ---- DOM refs ----------------------------------------------------------
   const heroImg = document.getElementById("heroImg");
+  const heroSub = document.getElementById("heroSub");
+  const scrollCue = document.getElementById("scrollCue");
   const groupBar = document.getElementById("groupBar");
   const subBar = document.getElementById("subBar");
   const menuSection = document.getElementById("menuSection");
-  const cartBadge = document.getElementById("cartBadge");
-  const cartCount = document.getElementById("cartCount");
 
   const overlay = document.getElementById("overlay");
   const sheet = document.getElementById("sheet");
+  const sheetHero = document.getElementById("sheetHero");
   const sheetImg = document.getElementById("sheetImg");
   const sheetClose = document.getElementById("sheetClose");
   const sheetEyebrow = document.getElementById("sheetEyebrow");
+  const sheetPopularTag = document.getElementById("sheetPopularTag");
   const sheetTitle = document.getElementById("sheetTitle");
+  const sheetBasePrice = document.getElementById("sheetBasePrice");
   const sheetDesc = document.getElementById("sheetDesc");
   const sheetExtras = document.getElementById("sheetExtras");
   const sheetExtrasList = document.getElementById("sheetExtrasList");
@@ -50,20 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const sheetAddBtn = document.getElementById("sheetAddBtn");
   const sheetAddPrice = document.getElementById("sheetAddPrice");
 
-  const cartOverlay = document.getElementById("cartOverlay");
-  const cartSheet = document.getElementById("cartSheet");
-  const cartClose = document.getElementById("cartCloseBtn");
-  const cartList = document.getElementById("cartList");
-  const cartEmpty = document.getElementById("cartEmpty");
-  const cartGrandTotal = document.getElementById("cartGrandTotal");
-  const cartClearBtn = document.getElementById("cartClearBtn");
-
-  const toast = document.getElementById("toast");
-
   let activeItem = null;
   let activeQty = 1;
   let activeExtras = new Set();
 
+  // ==========================================================================
+  // 2. HERO
+  // ==========================================================================
   function setHeroImage(group) {
     const src = groupMeta[group].image;
     heroImg.onerror = () => {
@@ -72,8 +75,32 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     heroImg.style.display = "block";
     heroImg.src = src;
+    heroImg.alt = groupMeta[group].label;
+    if (window.gsap) gsap.fromTo(heroImg, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" });
+    heroSub.textContent = "Sélection " + groupMeta[group].label.toLowerCase() + " — montrez votre choix au comptoir pour commander.";
   }
 
+  scrollCue.addEventListener("click", () => {
+    groupBar.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  function bounceScrollCue() {
+    if (!window.gsap) return;
+    gsap.to(scrollCue, { y: 6, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: -1 });
+  }
+
+  function hideScrollCue() {
+    if (window.gsap) {
+      gsap.killTweensOf(scrollCue);
+      gsap.to(scrollCue, { opacity: 0, duration: 0.3, onComplete: () => (scrollCue.style.display = "none") });
+    } else {
+      scrollCue.style.display = "none";
+    }
+  }
+
+  // ==========================================================================
+  // 3. LEVEL-1 FILTER — category row, always visible
+  // ==========================================================================
   function renderGroupBar() {
     groupBar.innerHTML = groupOrder.map(g => {
       const meta = groupMeta[g];
@@ -87,18 +114,31 @@ document.addEventListener("DOMContentLoaded", () => {
     groupBar.querySelectorAll(".pill").forEach(btn => {
       btn.addEventListener("click", () => {
         const g = btn.dataset.group;
+        const isFirstPick = state.group === null;
         if (g === state.group) return;
         state.group = g;
         state.sub = subOrder[g][0];
         setHeroImage(g);
+        hideScrollCue();
         renderGroupBar();
-        renderSubBar();
+        renderSubBar(isFirstPick);
         renderList();
       });
     });
   }
 
-  function renderSubBar() {
+  // ==========================================================================
+  // 4. LEVEL-2 FILTER — sub-category row
+  // Hidden completely (display: none via CSS) until state.group is set, then
+  // revealed with a short fade/slide the first time only.
+  // ==========================================================================
+  function renderSubBar(animateReveal) {
+    if (!state.group) {
+      subBar.classList.remove("is-visible");
+      subBar.innerHTML = "";
+      return;
+    }
+
     const subs = subOrder[state.group];
     subBar.innerHTML = subs.map(s => {
       const meta = subMeta[s];
@@ -114,13 +154,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const s = btn.dataset.sub;
         if (s === state.sub) return;
         state.sub = s;
-        renderSubBar();
+        renderSubBar(false);
         renderList();
       });
     });
+
+    const wasHidden = !subBar.classList.contains("is-visible");
+    subBar.classList.add("is-visible");
+    if (animateReveal && wasHidden && window.gsap) {
+      gsap.fromTo(subBar, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" });
+    }
   }
 
   function currentItems() {
+    if (!state.group || !state.sub) return [];
     return menuData.filter(i => i.group === state.group && i.sub === state.sub);
   }
 
@@ -130,27 +177,61 @@ document.addEventListener("DOMContentLoaded", () => {
     return "crepe";
   }
 
+  // ==========================================================================
+  // 5. PRODUCT GRID
+  // ==========================================================================
+  function thumbHTML(item) {
+    if (item.image) return `<img src="${item.image}" alt="" loading="lazy">`;
+    return `<span class="card-thumb-icon">${Icons[iconFor(item)]}</span>`;
+  }
+
   function cardHTML(item) {
     return `
       <button class="card" data-id="${item.id}">
-        <span class="card-thumb">${Icons[iconFor(item)]}</span>
+        <span class="card-thumb ${item.image ? "has-photo" : ""}">
+          ${thumbHTML(item)}
+          ${item.popular ? `<span class="card-ribbon">${Icons.star}Populaire</span>` : ""}
+        </span>
         <span class="card-body">
           <span class="card-name">${item.name}</span>
-          <span class="card-price">${item.price} dh</span>
+          <span class="card-desc">${item.desc}</span>
         </span>
-        <span class="card-add" data-quickadd="${item.id}" aria-label="Ajouter ${item.name}">${Icons.plus}</span>
+        <span class="card-side">
+          <span class="card-price">${item.price}<small> dh</small></span>
+          <span class="card-chevron" aria-hidden="true">${Icons.chevron}</span>
+        </span>
       </button>`;
   }
 
+  // Ornamental rule used to separate the sucré / salé sub-groups —
+  // the small centered diamond is the menu's recurring signature mark.
+  function sectionHeadingHTML(label) {
+    return `<h2 class="section-heading"><span>${label}</span><i class="section-heading-rule" aria-hidden="true"></i></h2>`;
+  }
+
+  function promptHTML() {
+    return `
+      <div class="category-prompt">
+        <span class="category-prompt-icon">${Icons.crepe}</span>
+        <h2 class="category-prompt-title">Choisissez une catégorie</h2>
+        <p class="category-prompt-text">Crêpes ou Boissons — touchez un bouton ci-dessus pour découvrir le menu.</p>
+      </div>`;
+  }
+
   function renderList() {
+    if (!state.group) {
+      menuSection.innerHTML = promptHTML();
+      return;
+    }
+
     const items = currentItems();
 
     if (state.group === "crepe" && state.sub === "crepe") {
       const sucre = items.filter(i => i.type === "sucre");
       const sale = items.filter(i => i.type === "sale");
       menuSection.innerHTML =
-        (sucre.length ? `<h2 class="section-heading">Crêpes sucrés</h2><div class="product-list">${sucre.map(cardHTML).join("")}</div>` : "") +
-        (sale.length ? `<h2 class="section-heading">Crêpes salés</h2><div class="product-list">${sale.map(cardHTML).join("")}</div>` : "");
+        (sucre.length ? `${sectionHeadingHTML("Crêpes sucrés")}<div class="product-list">${sucre.map(cardHTML).join("")}</div>` : "") +
+        (sale.length ? `${sectionHeadingHTML("Crêpes salés")}<div class="product-list">${sale.map(cardHTML).join("")}</div>` : "");
     } else {
       menuSection.innerHTML = items.length
         ? `<div class="product-list">${items.map(cardHTML).join("")}</div>`
@@ -158,22 +239,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     menuSection.querySelectorAll(".card").forEach(card => {
-      card.addEventListener("click", e => {
-        if (e.target.closest("[data-quickadd]")) return;
+      card.addEventListener("click", () => {
         const item = menuData.find(i => i.id === card.dataset.id);
         if (item) openSheet(item);
-      });
-    });
-
-    menuSection.querySelectorAll("[data-quickadd]").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        const item = menuData.find(i => i.id === btn.dataset.quickadd);
-        if (item) {
-          addToCart(item, 1, []);
-          pulseIcon(btn);
-          showToast(`${item.name} ajouté`);
-        }
       });
     });
 
@@ -181,24 +249,34 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function animateListIn() {
+    if (!window.gsap) return;
+    gsap.fromTo(menuSection, { opacity: 0.5 }, { opacity: 1, duration: 0.2 });
     const cards = menuSection.querySelectorAll(".card");
-    if (!window.gsap) return;
-    gsap.fromTo(cards, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.03 });
+    if (cards.length) {
+      gsap.fromTo(cards, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.03 });
+    }
   }
 
-  function pulseIcon(el) {
-    if (!window.gsap) return;
-    gsap.fromTo(el, { scale: 0.7 }, { scale: 1, duration: 0.35, ease: "back.out(3)" });
-  }
-
+  // ==========================================================================
+  // 6. DETAIL SHEET — informational only, no cart
+  // ==========================================================================
   function openSheet(item) {
     activeItem = item;
     activeQty = 1;
     activeExtras = new Set();
 
-    sheetImg.innerHTML = Icons[iconFor(item)];
+    if (item.image) {
+      sheetHero.classList.add("has-photo");
+      sheetImg.innerHTML = `<img src="${item.image}" alt="${item.name}">`;
+    } else {
+      sheetHero.classList.remove("has-photo");
+      sheetImg.innerHTML = Icons[iconFor(item)];
+    }
+
     sheetEyebrow.textContent = subMeta[item.sub].label;
+    sheetPopularTag.style.display = item.popular ? "inline-flex" : "none";
     sheetTitle.textContent = item.name;
+    sheetBasePrice.textContent = item.price + " dh";
     sheetDesc.textContent = item.desc;
 
     if (item.extras) {
@@ -264,109 +342,16 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSheetTotal();
   });
 
-  sheetAddBtn.addEventListener("click", () => {
-    if (!activeItem) return;
-    const chosenExtras = [...activeExtras].map(id => extrasCatalog.find(e => e.id === id));
-    addToCart(activeItem, activeQty, chosenExtras);
-    showToast(`${activeItem.name} ajouté à la commande`);
-    closeSheet();
-  });
-
+  sheetAddBtn.addEventListener("click", closeSheet);
   sheetClose.addEventListener("click", closeSheet);
   overlay.addEventListener("click", closeSheet);
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 
-  function addToCart(item, qty, extras) {
-    const unit = item.price + extras.reduce((s, e) => s + e.price, 0);
-    state.cart.push({
-      itemId: item.id,
-      name: item.name,
-      unitPrice: unit,
-      qty,
-      extras,
-      lineTotal: unit * qty
-    });
-    renderCartBadge();
-  }
-
-  function renderCartBadge() {
-    const count = state.cart.reduce((s, l) => s + l.qty, 0);
-    cartCount.textContent = count;
-    cartBadge.classList.toggle("is-visible", count > 0);
-    if (window.gsap && count > 0) {
-      gsap.fromTo(cartBadge, { scale: 0.85 }, { scale: 1, duration: 0.3, ease: "back.out(3)" });
-    }
-  }
-
-  function renderCartSheet() {
-    if (!state.cart.length) {
-      cartList.innerHTML = "";
-      cartEmpty.style.display = "block";
-      cartGrandTotal.textContent = "0 dh";
-      return;
-    }
-    cartEmpty.style.display = "none";
-    cartList.innerHTML = state.cart.map((line, idx) => `
-      <div class="cart-line">
-        <div class="cart-line-main">
-          <span class="cart-line-name">${line.qty}× ${line.name}</span>
-          ${line.extras.length ? `<span class="cart-line-extras">${line.extras.map(e => e.label).join(", ")}</span>` : ""}
-        </div>
-        <span class="cart-line-price">${line.lineTotal} dh</span>
-        <button class="cart-line-remove" data-idx="${idx}" aria-label="Retirer">${Icons.close}</button>
-      </div>
-    `).join("");
-
-    cartList.querySelectorAll(".cart-line-remove").forEach(btn => {
-      btn.addEventListener("click", () => {
-        state.cart.splice(Number(btn.dataset.idx), 1);
-        renderCartBadge();
-        renderCartSheet();
-      });
-    });
-
-    const grand = state.cart.reduce((s, l) => s + l.lineTotal, 0);
-    cartGrandTotal.textContent = grand + " dh";
-  }
-
-  function openCartSheet() {
-    renderCartSheet();
-    document.body.style.overflow = "hidden";
-    gsap.set(cartOverlay, { pointerEvents: "auto" });
-    gsap.to(cartOverlay, { opacity: 1, duration: 0.25 });
-    gsap.to(cartSheet, { y: "0%", duration: 0.45, ease: "power3.out" });
-  }
-
-  function closeCartSheet() {
-    document.body.style.overflow = "";
-    gsap.to(cartOverlay, { opacity: 0, duration: 0.2, onComplete: () => gsap.set(cartOverlay, { pointerEvents: "none" }) });
-    gsap.to(cartSheet, { y: "100%", duration: 0.35, ease: "power3.in" });
-  }
-
-  cartBadge.addEventListener("click", openCartSheet);
-  cartClose.addEventListener("click", closeCartSheet);
-  cartOverlay.addEventListener("click", closeCartSheet);
-  cartClearBtn.addEventListener("click", () => {
-    state.cart = [];
-    renderCartBadge();
-    renderCartSheet();
-  });
-
-  let toastTimer = null;
-  function showToast(msg) {
-    toast.textContent = msg;
-    clearTimeout(toastTimer);
-    gsap.killTweensOf(toast);
-    gsap.set(toast, { display: "flex" });
-    gsap.fromTo(toast, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" });
-    toastTimer = setTimeout(() => {
-      gsap.to(toast, { y: 20, opacity: 0, duration: 0.3, ease: "power2.in", onComplete: () => gsap.set(toast, { display: "none" }) });
-    }, 1800);
-  }
-
-  setHeroImage(state.group);
+  // ==========================================================================
+  // INIT
+  // ==========================================================================
   renderGroupBar();
-  renderSubBar();
+  renderSubBar(false);
   renderList();
-  renderCartBadge();
+  bounceScrollCue();
 });
