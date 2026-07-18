@@ -31,9 +31,20 @@
 // WhatsApp number in international format, digits only, NO leading "+".
 // Example: a Morocco mobile 06 12 34 56 78 becomes "212612345678".
 // >>> REPLACE THIS with the real shop number before going live. <<<
+//
+// Everything below is used by the footer (Nous trouver / Horaires / Appeler /
+// Instagram cards) — edit these six lines and the footer updates everywhere,
+// no HTML changes needed.
 const shopConfig = {
   name: "Mehdi Crêpes & Drinks",
-  whatsapp: "212600000000"
+  whatsapp: "212600000000",
+  phoneDisplay: "06 00 00 00 00",       // shown on the footer "Appeler" card
+  address: "Guéliz, Marrakech",          // shown on the footer "Nous trouver" card
+  mapsUrl: "https://maps.google.com/?q=Mehdi+Crepes+Drinks+Marrakech", // >>> REPLACE with your real Google Maps link <<<
+  hours: "Tous les jours · 9h – minuit",
+  instagramHandle: "@mehdi.crepes",      // set to "" to hide the Instagram card
+  instagramUrl: "https://instagram.com/mehdi.crepes",
+  facebookUrl: ""                        // set to your Page URL to show the Facebook icon, or leave "" to hide it
 };
 
 // ---- Level-1 groups (top filter row) -------------------------------------

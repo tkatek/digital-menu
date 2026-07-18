@@ -30,7 +30,15 @@ const Icons = {
   minus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
   bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>`,
   trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>`,
-  whatsapp: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1s-.7.8-.9 1c-.2.2-.3.2-.6.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5L9 9c-.1-.2-.6-1.5-.9-2-.2-.6-.5-.5-.6-.5h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3.9 2.6 1.1 2.8.1.2 2 3.1 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3Z"/></svg>`
+  whatsapp: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1s-.7.8-.9 1c-.2.2-.3.2-.6.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5L9 9c-.1-.2-.6-1.5-.9-2-.2-.6-.5-.5-.6-.5h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3c0 1.3.9 2.6 1.1 2.8.1.2 2 3.1 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3Z"/></svg>`,
+  mapPin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10.5c0 5.5-8 12-8 12s-8-6.5-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10.5" r="2.7"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.6 2.1"/></svg>`,
+  phoneCall: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.2 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.2 1.1L6.6 10.8Z"/></svg>`,
+  instagram: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M16.8 7.2h.01"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m20 20-4.3-4.3"/></svg>`,
+  arrowRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15.5M13.5 5.5 20 12l-6.5 6.5"/></svg>`,
+  facebook: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.6h2.6l.4-3H13.5V8.4c0-.9.2-1.5 1.5-1.5h1.6V4.2C16.3 4.1 15.3 4 14.2 4c-2.3 0-3.9 1.4-3.9 4v2.4H7.7v3h2.6V21h3.2Z"/></svg>`,
+  sparkle: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c.5 3.4 1.4 5.6 2.8 7 1.4 1.4 3.6 2.3 7 2.8-3.4.5-5.6 1.4-7 2.8-1.4 1.4-2.3 3.6-2.8 7-.5-3.4-1.4-5.6-2.8-7-1.4-1.4-3.6-2.3-7-2.8 3.4-.5 5.6-1.4 7-2.8 1.4-1.4 2.3-3.6 2.8-7Z"/></svg>`
 };
 
 // Global fallback: if a real photo 404s, swap the card thumbnail for the
@@ -42,6 +50,13 @@ window.handleThumbError = function (imgEl, iconKey) {
   if (!wrap) return;
   wrap.classList.remove("has-photo");
   wrap.innerHTML = `<span class="card-thumb-icon">${Icons[iconKey]}</span>`;
+};
+
+// If a category tile photo (home screen) 404s, just hide the <img> — the
+// gradient + big line-icon already sitting behind it becomes the visual.
+window.handleTileImgError = function (imgEl) {
+  imgEl.onerror = null;
+  imgEl.style.display = "none";
 };
 
 window.handleSheetPhotoError = function (imgEl, iconKey) {
@@ -213,6 +228,18 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ==========================================================================
      4. FILTERS
      ========================================================================== */
+  function selectGroup(g) {
+    const isFirstPick = state.group === null;
+    if (g === state.group) return;
+    state.group = g;
+    state.sub = subOrder[g][0];
+    setHeroImage(g);
+    hideScrollCue();
+    renderGroupBar();
+    renderSubBar(isFirstPick);
+    renderList();
+  }
+
   function renderGroupBar() {
     groupBar.innerHTML = groupOrder.map(g => {
       const meta = groupMeta[g];
@@ -224,18 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
 
     groupBar.querySelectorAll(".pill").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const g = btn.dataset.group;
-        const isFirstPick = state.group === null;
-        if (g === state.group) return;
-        state.group = g;
-        state.sub = subOrder[g][0];
-        setHeroImage(g);
-        hideScrollCue();
-        renderGroupBar();
-        renderSubBar(isFirstPick);
-        renderList();
-      });
+      btn.addEventListener("click", () => selectGroup(btn.dataset.group));
     });
   }
 
@@ -333,18 +349,90 @@ document.addEventListener("DOMContentLoaded", () => {
     return `<h2 class="section-heading"><span>${label}</span><i class="section-heading-rule" aria-hidden="true"></i></h2>`;
   }
 
-  function promptHTML() {
+  /* ---- Home screen: hero → pills → 3 featured product cards → promo
+     banner → footer. No search, no category tiles — the pills above
+     already do the category picking. ------------------------------------ */
+  function pickFeatured(count) {
+    const popular = menuData.filter(i => i.popular);
+    const rest = menuData.filter(i => !i.popular);
+    const pool = popular.length >= count ? popular : popular.concat(rest);
+    // Spread picks across different sub-categories so the 3 cards don't
+    // all end up being e.g. three sweet crêpes.
+    const seen = new Set();
+    const picks = [];
+    for (const item of pool) {
+      const bucket = item.group + "|" + item.sub;
+      if (seen.has(bucket) && picks.length < pool.length) continue;
+      seen.add(bucket);
+      picks.push(item);
+      if (picks.length === count) break;
+    }
+    if (picks.length < count) {
+      for (const item of pool) {
+        if (picks.length === count) break;
+        if (!picks.includes(item)) picks.push(item);
+      }
+    }
+    return picks.slice(0, count);
+  }
+
+  function featureCardHTML(item) {
     return `
-      <div class="category-prompt">
-        <span class="category-prompt-icon">${Icons.crepe}</span>
-        <h2 class="category-prompt-title">Choisissez une catégorie</h2>
-        <p class="category-prompt-text">Crêpes ou Boissons — touchez un bouton ci-dessus pour découvrir le menu.</p>
-      </div>`;
+      <button class="feature-card" data-open="${item.id}">
+        <span class="feature-card-media">
+          <span class="feature-card-icon-bg">${Icons[iconFor(item)]}</span>
+          <img src="${item.image}" alt="" loading="lazy" onerror="window.handleTileImgError(this)">
+          ${item.popular ? `<span class="feature-card-ribbon">${Icons.star}Populaire</span>` : ""}
+        </span>
+        <span class="feature-card-body">
+          <span class="feature-card-name">${item.name}</span>
+          <span class="feature-card-desc">${item.desc}</span>
+          <span class="feature-card-price">${item.price} dh</span>
+        </span>
+      </button>`;
+  }
+
+  function promoBannerHTML() {
+    const g = groupOrder[0];
+    return `
+      <button class="promo-banner" data-group="${g}">
+        <span class="promo-banner-media">
+          <span class="promo-banner-icon-bg">${Icons[groupMeta[g].icon]}</span>
+          <img src="${groupMeta[g].image}" alt="" loading="lazy" onerror="window.handleTileImgError(this)">
+        </span>
+        <span class="promo-banner-body">
+          <svg class="promo-banner-wave" viewBox="0 0 120 20" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M-5 12c8-8 16-8 24 0s16 8 24 0 16-8 24 0 16 8 24 0" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+          <span class="promo-banner-title">Coup de cœur du moment</span>
+          <span class="promo-banner-text">Nos crêpes et gouffres garnis minute, à composer avec vos extras préférés.</span>
+          <span class="promo-banner-cta"><span>Voir la carte</span>${Icons.arrowRight}</span>
+        </span>
+      </button>`;
+  }
+
+  function homeScreenHTML() {
+    const featured = pickFeatured(3);
+    return `
+      <h2 class="section-heading section-heading--home"><span>Nos préférés</span><i class="section-heading-rule" aria-hidden="true"></i></h2>
+      <div class="feature-list">
+        ${featured.map(featureCardHTML).join("")}
+      </div>
+      ${promoBannerHTML()}`;
+  }
+
+  function bindHomeEvents() {
+    menuSection.querySelectorAll(".promo-banner[data-group]").forEach(btn => {
+      btn.addEventListener("click", () => selectGroup(btn.dataset.group));
+    });
   }
 
   function renderList() {
     if (!state.group) {
-      menuSection.innerHTML = promptHTML();
+      menuSection.innerHTML = homeScreenHTML();
+      bindCardEvents();
+      bindHomeEvents();
+      animateListIn();
       return;
     }
 
@@ -615,6 +703,52 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   whatsappBtn.addEventListener("click", openWhatsAppCheckout);
 
+  /* ==========================================================================
+     FOOTER — populated from shopConfig so data.js stays the single file
+     to edit for real shop details.
+     ========================================================================== */
+  function initFooter() {
+    const nameEl = document.getElementById("footerShopName");
+    const copyNameEl = document.getElementById("footerCopyName");
+    const yearEl = document.getElementById("footerYear");
+
+    const mapsLink = document.getElementById("footerMapsLink");
+    const hoursRow = document.getElementById("footerHoursRow");
+    const phoneLink = document.getElementById("footerPhoneLink");
+    const instaLink = document.getElementById("footerInstaLink");
+    const whatsappLink = document.getElementById("footerWhatsappLink");
+
+    const instaBtn = document.getElementById("footerInstaBtn");
+    const fbBtn = document.getElementById("footerFbBtn");
+
+    if (nameEl) nameEl.textContent = shopConfig.name;
+    if (copyNameEl) copyNameEl.textContent = shopConfig.name;
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    if (mapsLink) mapsLink.href = shopConfig.mapsUrl;
+    if (phoneLink) phoneLink.href = "tel:" + shopConfig.phoneDisplay.replace(/\s+/g, "");
+    if (whatsappLink) whatsappLink.href = `https://wa.me/${shopConfig.whatsapp}`;
+    if (hoursRow) {
+      hoursRow.addEventListener("click", () => showToast(shopConfig.hours));
+    }
+
+    const hasInsta = !!shopConfig.instagramHandle;
+    if (instaLink) {
+      if (hasInsta) instaLink.href = shopConfig.instagramUrl;
+      else instaLink.style.display = "none";
+    }
+    if (instaBtn) {
+      if (hasInsta) instaBtn.href = shopConfig.instagramUrl;
+      else instaBtn.style.display = "none";
+    }
+
+    const hasFb = !!shopConfig.facebookUrl;
+    if (fbBtn) {
+      if (hasFb) fbBtn.href = shopConfig.facebookUrl;
+      else fbBtn.style.display = "none";
+    }
+  }
+
   /* ---- Toast ----------------------------------------------------------- */
   let toastTimer = null;
   function showToast(msg) {
@@ -644,4 +778,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderList();
   renderCartBar();
   bounceScrollCue();
+  initFooter();
 });
