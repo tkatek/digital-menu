@@ -1,291 +1,372 @@
-const productList = document.getElementById('productList');
-const categoryFilters = document.getElementById('categoryFilters');
-const resultsTitle = document.getElementById('resultsTitle');
-const resultsCount = document.getElementById('resultsCount');
-const splashScreen = document.getElementById('splashScreen');
-const bottomSheet = document.getElementById('bottomSheet');
-const backdrop = document.getElementById('backdrop');
-const sheetClose = document.getElementById('sheetClose');
-const sheetHandle = document.getElementById('sheetHandle');
-const sheetImage = document.getElementById('sheetImage');
-const sheetCategory = document.getElementById('sheetCategory');
-const sheetTitle = document.getElementById('sheetTitle');
-const sheetPrice = document.getElementById('sheetPrice');
-const sheetDescription = document.getElementById('sheetDescription');
-const extrasSection = document.getElementById('extrasSection');
-const extrasList = document.getElementById('extrasList');
-const quantityValue = document.getElementById('quantityValue');
-const decreaseQty = document.getElementById('decreaseQty');
-const increaseQty = document.getElementById('increaseQty');
-const addToOrderBtn = document.getElementById('addToOrderBtn');
-const ctaTotal = document.getElementById('ctaTotal');
+/* ==========================================================================
+   main.js — Mehdi Crêpes & Drinks — behavior
+   1. Icon set (inline SVG, no external icon font — zero broken-asset risk)
+   2. Two-level filter rendering (group -> sub) + product list
+   3. Product bottom sheet: extras checkboxes, qty stepper, live total
+   4. Order (cart) summary sheet
+   ========================================================================== */
 
-const state = {
-  activeCategory: 'All',
-  selectedItem: null,
-  selectedExtras: new Set(),
-  quantity: 1,
-  sheetOpen: false,
-  previousFocus: null
+const Icons = {
+  crepe: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c0-2.5 4-4.5 9-4.5S21 5.5 21 8"/><path d="M3 8c0 1.8 1 3.3 3 4.3L4 20l4-2 2 2 2-2 2 2 2-2 4 2-2-7.7c2-1 3-2.5 3-4.3"/></svg>`,
+  waffle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 3.5v17M14 3.5v17M3.5 9h17M3.5 15h17"/></svg>`,
+  cup: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9.5h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3.5c-.6.6-.6 1.4 0 2M12 3.5c-.6.6-.6 1.4 0 2"/></svg>`,
+  flame: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.5 5 9.5a5 5 0 0 1-10 0c0-1.5.7-2.6 1.5-3.5.2 1.2 1 1.8 1.5 1.8-.3-2.5.8-5 2-7.8Z"/></svg>`,
+  snow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4.5 6l15 12M19.5 6l-15 12"/><path d="M12 2 9.5 4.5M12 2l2.5 2.5M12 22l-2.5-2.5M12 22l2.5-2.5"/></svg>`,
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+  minus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 9.5 17 19 7"/></svg>`,
+  bag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>`
 };
 
-const formatPrice = (value, currency = 'dh') => `${value.toFixed(2)} ${currency}`;
+document.addEventListener("DOMContentLoaded", () => {
 
-const getFilteredItems = () =>
-  state.activeCategory === 'All'
-    ? menuItems
-    : menuItems.filter((item) => item.category === state.activeCategory);
+  const state = {
+    group: "crepe",
+    sub: "crepe",
+    cart: [] // { itemId, name, unitPrice, qty, extras:[{id,label,price}], lineTotal }
+  };
 
-function renderCategoryFilters() {
-  categoryFilters.innerHTML = '';
+  const heroImg = document.getElementById("heroImg");
+  const groupBar = document.getElementById("groupBar");
+  const subBar = document.getElementById("subBar");
+  const menuSection = document.getElementById("menuSection");
+  const cartBadge = document.getElementById("cartBadge");
+  const cartCount = document.getElementById("cartCount");
 
-  menuCategories.forEach((category) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `category-pill ${category === state.activeCategory ? 'category-pill--active' : ''}`;
-    button.textContent = category;
-    button.setAttribute('aria-pressed', String(category === state.activeCategory));
+  const overlay = document.getElementById("overlay");
+  const sheet = document.getElementById("sheet");
+  const sheetImg = document.getElementById("sheetImg");
+  const sheetClose = document.getElementById("sheetClose");
+  const sheetEyebrow = document.getElementById("sheetEyebrow");
+  const sheetTitle = document.getElementById("sheetTitle");
+  const sheetDesc = document.getElementById("sheetDesc");
+  const sheetExtras = document.getElementById("sheetExtras");
+  const sheetExtrasList = document.getElementById("sheetExtrasList");
+  const qtyValue = document.getElementById("qtyValue");
+  const qtyMinus = document.getElementById("qtyMinus");
+  const qtyPlus = document.getElementById("qtyPlus");
+  const sheetAddBtn = document.getElementById("sheetAddBtn");
+  const sheetAddPrice = document.getElementById("sheetAddPrice");
 
-    button.addEventListener('click', () => {
-      if (category === state.activeCategory) return;
-      state.activeCategory = category;
-      renderCategoryFilters();
-      renderProducts(true);
+  const cartOverlay = document.getElementById("cartOverlay");
+  const cartSheet = document.getElementById("cartSheet");
+  const cartClose = document.getElementById("cartCloseBtn");
+  const cartList = document.getElementById("cartList");
+  const cartEmpty = document.getElementById("cartEmpty");
+  const cartGrandTotal = document.getElementById("cartGrandTotal");
+  const cartClearBtn = document.getElementById("cartClearBtn");
+
+  const toast = document.getElementById("toast");
+
+  let activeItem = null;
+  let activeQty = 1;
+  let activeExtras = new Set();
+
+  function setHeroImage(group) {
+    const src = groupMeta[group].image;
+    heroImg.onerror = () => {
+      heroImg.onerror = null;
+      heroImg.style.display = "none";
+    };
+    heroImg.style.display = "block";
+    heroImg.src = src;
+  }
+
+  function renderGroupBar() {
+    groupBar.innerHTML = groupOrder.map(g => {
+      const meta = groupMeta[g];
+      return `
+        <button class="pill pill--lg ${state.group === g ? "is-active" : ""}" data-group="${g}">
+          <span class="pill-icon">${Icons[meta.icon]}</span>
+          <span>${meta.label}</span>
+        </button>`;
+    }).join("");
+
+    groupBar.querySelectorAll(".pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const g = btn.dataset.group;
+        if (g === state.group) return;
+        state.group = g;
+        state.sub = subOrder[g][0];
+        setHeroImage(g);
+        renderGroupBar();
+        renderSubBar();
+        renderList();
+      });
+    });
+  }
+
+  function renderSubBar() {
+    const subs = subOrder[state.group];
+    subBar.innerHTML = subs.map(s => {
+      const meta = subMeta[s];
+      return `
+        <button class="pill ${state.sub === s ? "is-active" : ""}" data-sub="${s}">
+          <span class="pill-icon">${Icons[meta.icon]}</span>
+          <span>${meta.label}</span>
+        </button>`;
+    }).join("");
+
+    subBar.querySelectorAll(".pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const s = btn.dataset.sub;
+        if (s === state.sub) return;
+        state.sub = s;
+        renderSubBar();
+        renderList();
+      });
+    });
+  }
+
+  function currentItems() {
+    return menuData.filter(i => i.group === state.group && i.sub === state.sub);
+  }
+
+  function iconFor(item) {
+    if (item.sub === "gouffre") return "waffle";
+    if (item.group === "drinks") return item.sub === "chaude" ? "flame" : "snow";
+    return "crepe";
+  }
+
+  function cardHTML(item) {
+    return `
+      <button class="card" data-id="${item.id}">
+        <span class="card-thumb">${Icons[iconFor(item)]}</span>
+        <span class="card-body">
+          <span class="card-name">${item.name}</span>
+          <span class="card-price">${item.price} dh</span>
+        </span>
+        <span class="card-add" data-quickadd="${item.id}" aria-label="Ajouter ${item.name}">${Icons.plus}</span>
+      </button>`;
+  }
+
+  function renderList() {
+    const items = currentItems();
+
+    if (state.group === "crepe" && state.sub === "crepe") {
+      const sucre = items.filter(i => i.type === "sucre");
+      const sale = items.filter(i => i.type === "sale");
+      menuSection.innerHTML =
+        (sucre.length ? `<h2 class="section-heading">Crêpes sucrés</h2><div class="product-list">${sucre.map(cardHTML).join("")}</div>` : "") +
+        (sale.length ? `<h2 class="section-heading">Crêpes salés</h2><div class="product-list">${sale.map(cardHTML).join("")}</div>` : "");
+    } else {
+      menuSection.innerHTML = items.length
+        ? `<div class="product-list">${items.map(cardHTML).join("")}</div>`
+        : `<p class="empty-state">Aucun article ici pour le moment.</p>`;
+    }
+
+    menuSection.querySelectorAll(".card").forEach(card => {
+      card.addEventListener("click", e => {
+        if (e.target.closest("[data-quickadd]")) return;
+        const item = menuData.find(i => i.id === card.dataset.id);
+        if (item) openSheet(item);
+      });
     });
 
-    categoryFilters.appendChild(button);
+    menuSection.querySelectorAll("[data-quickadd]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const item = menuData.find(i => i.id === btn.dataset.quickadd);
+        if (item) {
+          addToCart(item, 1, []);
+          pulseIcon(btn);
+          showToast(`${item.name} ajouté`);
+        }
+      });
+    });
+
+    animateListIn();
+  }
+
+  function animateListIn() {
+    const cards = menuSection.querySelectorAll(".card");
+    if (!window.gsap) return;
+    gsap.fromTo(cards, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", stagger: 0.03 });
+  }
+
+  function pulseIcon(el) {
+    if (!window.gsap) return;
+    gsap.fromTo(el, { scale: 0.7 }, { scale: 1, duration: 0.35, ease: "back.out(3)" });
+  }
+
+  function openSheet(item) {
+    activeItem = item;
+    activeQty = 1;
+    activeExtras = new Set();
+
+    sheetImg.innerHTML = Icons[iconFor(item)];
+    sheetEyebrow.textContent = subMeta[item.sub].label;
+    sheetTitle.textContent = item.name;
+    sheetDesc.textContent = item.desc;
+
+    if (item.extras) {
+      sheetExtras.style.display = "block";
+      sheetExtrasList.innerHTML = extrasCatalog.map(ex => `
+        <label class="extra-row" data-extra="${ex.id}">
+          <span class="extra-check">${Icons.check}</span>
+          <span class="extra-label">${ex.label}</span>
+          <span class="extra-price">+${ex.price} dh</span>
+        </label>`).join("");
+
+      sheetExtrasList.querySelectorAll(".extra-row").forEach(row => {
+        row.addEventListener("click", () => {
+          const id = row.dataset.extra;
+          if (activeExtras.has(id)) activeExtras.delete(id);
+          else activeExtras.add(id);
+          row.classList.toggle("is-checked");
+          updateSheetTotal();
+        });
+      });
+    } else {
+      sheetExtras.style.display = "none";
+      sheetExtrasList.innerHTML = "";
+    }
+
+    qtyValue.textContent = activeQty;
+    updateSheetTotal();
+
+    document.body.style.overflow = "hidden";
+    gsap.set(overlay, { pointerEvents: "auto" });
+    gsap.to(overlay, { opacity: 1, duration: 0.25 });
+    gsap.to(sheet, { y: "0%", duration: 0.45, ease: "power3.out" });
+  }
+
+  function closeSheet() {
+    document.body.style.overflow = "";
+    gsap.to(overlay, { opacity: 0, duration: 0.2, onComplete: () => gsap.set(overlay, { pointerEvents: "none" }) });
+    gsap.to(sheet, { y: "100%", duration: 0.35, ease: "power3.in" });
+  }
+
+  function extrasTotal() {
+    return [...activeExtras].reduce((sum, id) => {
+      const ex = extrasCatalog.find(e => e.id === id);
+      return sum + (ex ? ex.price : 0);
+    }, 0);
+  }
+
+  function updateSheetTotal() {
+    if (!activeItem) return;
+    const unit = activeItem.price + extrasTotal();
+    sheetAddPrice.textContent = (unit * activeQty) + " dh";
+  }
+
+  qtyMinus.addEventListener("click", () => {
+    if (activeQty <= 1) return;
+    activeQty--;
+    qtyValue.textContent = activeQty;
+    updateSheetTotal();
   });
-}
+  qtyPlus.addEventListener("click", () => {
+    activeQty++;
+    qtyValue.textContent = activeQty;
+    updateSheetTotal();
+  });
 
-function createProductCard(item) {
-  const card = document.createElement('button');
-  card.type = 'button';
-  card.className = 'product-card';
-  card.setAttribute('data-id', item.id);
-  card.setAttribute('aria-label', `Open details for ${item.name}`);
+  sheetAddBtn.addEventListener("click", () => {
+    if (!activeItem) return;
+    const chosenExtras = [...activeExtras].map(id => extrasCatalog.find(e => e.id === id));
+    addToCart(activeItem, activeQty, chosenExtras);
+    showToast(`${activeItem.name} ajouté à la commande`);
+    closeSheet();
+  });
 
-  card.innerHTML = `
-    <div class="product-card__thumb">
-      <img src="${item.image}" alt="${item.name}" loading="lazy" />
-    </div>
-    <div class="product-card__body">
-      <span class="product-card__category">${item.category}</span>
-      <div class="product-card__title-row">
-        <h4 class="product-card__title">${item.name}</h4>
-        <span class="product-card__price">${formatPrice(item.price, item.currency)}</span>
+  sheetClose.addEventListener("click", closeSheet);
+  overlay.addEventListener("click", closeSheet);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+  function addToCart(item, qty, extras) {
+    const unit = item.price + extras.reduce((s, e) => s + e.price, 0);
+    state.cart.push({
+      itemId: item.id,
+      name: item.name,
+      unitPrice: unit,
+      qty,
+      extras,
+      lineTotal: unit * qty
+    });
+    renderCartBadge();
+  }
+
+  function renderCartBadge() {
+    const count = state.cart.reduce((s, l) => s + l.qty, 0);
+    cartCount.textContent = count;
+    cartBadge.classList.toggle("is-visible", count > 0);
+    if (window.gsap && count > 0) {
+      gsap.fromTo(cartBadge, { scale: 0.85 }, { scale: 1, duration: 0.3, ease: "back.out(3)" });
+    }
+  }
+
+  function renderCartSheet() {
+    if (!state.cart.length) {
+      cartList.innerHTML = "";
+      cartEmpty.style.display = "block";
+      cartGrandTotal.textContent = "0 dh";
+      return;
+    }
+    cartEmpty.style.display = "none";
+    cartList.innerHTML = state.cart.map((line, idx) => `
+      <div class="cart-line">
+        <div class="cart-line-main">
+          <span class="cart-line-name">${line.qty}× ${line.name}</span>
+          ${line.extras.length ? `<span class="cart-line-extras">${line.extras.map(e => e.label).join(", ")}</span>` : ""}
+        </div>
+        <span class="cart-line-price">${line.lineTotal} dh</span>
+        <button class="cart-line-remove" data-idx="${idx}" aria-label="Retirer">${Icons.close}</button>
       </div>
-      <p class="product-card__description">${item.description}</p>
-      <span class="product-card__action" aria-hidden="true">+</span>
-    </div>
-  `;
+    `).join("");
 
-  card.addEventListener('click', () => openBottomSheet(item, card));
-  return card;
-}
-
-function renderProducts(withAnimation = false) {
-  const items = getFilteredItems();
-  productList.innerHTML = '';
-
-  items.forEach((item) => {
-    productList.appendChild(createProductCard(item));
-  });
-
-  resultsTitle.textContent = state.activeCategory === 'All' ? 'All Menu' : state.activeCategory;
-  resultsCount.textContent = `${items.length} item${items.length > 1 ? 's' : ''}`;
-
-  if (withAnimation) {
-    gsap.fromTo(
-      '.product-card',
-      { y: 20, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.45,
-        stagger: 0.08,
-        ease: 'power2.out',
-        clearProps: 'all'
-      }
-    );
-  }
-}
-
-function renderExtras(item) {
-  extrasList.innerHTML = '';
-
-  if (!item.extras || item.extras.length === 0) {
-    extrasSection.classList.add('hidden');
-    return;
-  }
-
-  extrasSection.classList.remove('hidden');
-
-  item.extras.forEach((extra) => {
-    const option = document.createElement('button');
-    option.type = 'button';
-    option.className = `extra-option ${state.selectedExtras.has(extra.id) ? 'extra-option--selected' : ''}`;
-    option.innerHTML = `
-      <span class="extra-option__check" aria-hidden="true"></span>
-      <span class="extra-option__name">${extra.name}</span>
-      <span class="extra-option__price">+${formatPrice(extra.price, item.currency)}</span>
-    `;
-
-    option.addEventListener('click', () => {
-      if (state.selectedExtras.has(extra.id)) {
-        state.selectedExtras.delete(extra.id);
-      } else {
-        state.selectedExtras.add(extra.id);
-      }
-
-      renderExtras(item);
-      updateSheetTotals();
+    cartList.querySelectorAll(".cart-line-remove").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.cart.splice(Number(btn.dataset.idx), 1);
+        renderCartBadge();
+        renderCartSheet();
+      });
     });
 
-    extrasList.appendChild(option);
-  });
-}
-
-function updateSheetTotals() {
-  if (!state.selectedItem) return;
-
-  const extrasTotal = state.selectedItem.extras
-    .filter((extra) => state.selectedExtras.has(extra.id))
-    .reduce((sum, extra) => sum + extra.price, 0);
-
-  const total = (state.selectedItem.price + extrasTotal) * state.quantity;
-  quantityValue.textContent = state.quantity;
-  ctaTotal.textContent = formatPrice(total, state.selectedItem.currency);
-}
-
-function populateSheet(item) {
-  sheetImage.src = item.image;
-  sheetImage.alt = item.name;
-  sheetCategory.textContent = item.category;
-  sheetTitle.textContent = item.name;
-  sheetPrice.textContent = formatPrice(item.price, item.currency);
-  sheetDescription.textContent = item.description;
-
-  renderExtras(item);
-  updateSheetTotals();
-}
-
-const sheetTimeline = gsap.timeline({
-  paused: true,
-  defaults: { ease: 'power3.out' },
-  onReverseComplete: () => {
-    backdrop.classList.add('hidden');
-    bottomSheet.setAttribute('aria-hidden', 'true');
-    state.sheetOpen = false;
-    document.body.style.overflow = '';
-    if (state.previousFocus) {
-      state.previousFocus.focus();
-    }
+    const grand = state.cart.reduce((s, l) => s + l.lineTotal, 0);
+    cartGrandTotal.textContent = grand + " dh";
   }
+
+  function openCartSheet() {
+    renderCartSheet();
+    document.body.style.overflow = "hidden";
+    gsap.set(cartOverlay, { pointerEvents: "auto" });
+    gsap.to(cartOverlay, { opacity: 1, duration: 0.25 });
+    gsap.to(cartSheet, { y: "0%", duration: 0.45, ease: "power3.out" });
+  }
+
+  function closeCartSheet() {
+    document.body.style.overflow = "";
+    gsap.to(cartOverlay, { opacity: 0, duration: 0.2, onComplete: () => gsap.set(cartOverlay, { pointerEvents: "none" }) });
+    gsap.to(cartSheet, { y: "100%", duration: 0.35, ease: "power3.in" });
+  }
+
+  cartBadge.addEventListener("click", openCartSheet);
+  cartClose.addEventListener("click", closeCartSheet);
+  cartOverlay.addEventListener("click", closeCartSheet);
+  cartClearBtn.addEventListener("click", () => {
+    state.cart = [];
+    renderCartBadge();
+    renderCartSheet();
+  });
+
+  let toastTimer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    clearTimeout(toastTimer);
+    gsap.killTweensOf(toast);
+    gsap.set(toast, { display: "flex" });
+    gsap.fromTo(toast, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" });
+    toastTimer = setTimeout(() => {
+      gsap.to(toast, { y: 20, opacity: 0, duration: 0.3, ease: "power2.in", onComplete: () => gsap.set(toast, { display: "none" }) });
+    }, 1800);
+  }
+
+  setHeroImage(state.group);
+  renderGroupBar();
+  renderSubBar();
+  renderList();
+  renderCartBadge();
 });
-
-sheetTimeline
-  .to(backdrop, { autoAlpha: 1, duration: 0.22 }, 0)
-  .to(bottomSheet, { y: '0%', duration: 0.48 }, 0)
-  .from(
-    '.bottom-sheet__media-wrap, .bottom-sheet__intro, .bottom-sheet__description, .extras, .sheet-footer',
-    { y: 18, opacity: 0, duration: 0.36, stagger: 0.05 },
-    0.08
-  );
-
-function openBottomSheet(item, triggerElement) {
-  state.selectedItem = item;
-  state.selectedExtras = new Set();
-  state.quantity = 1;
-  state.previousFocus = triggerElement;
-
-  populateSheet(item);
-
-  backdrop.classList.remove('hidden');
-  bottomSheet.setAttribute('aria-hidden', 'false');
-  state.sheetOpen = true;
-  document.body.style.overflow = 'hidden';
-  sheetTimeline.play(0);
-}
-
-function closeBottomSheet() {
-  if (!state.sheetOpen) return;
-  sheetTimeline.reverse();
-}
-
-function bootSplashSequence() {
-  const introTimeline = gsap.timeline();
-
-  introTimeline
-    .fromTo(
-      '.splash-screen__inner',
-      { opacity: 0, scale: 0.8 },
-      { opacity: 1, scale: 1, duration: 1.2, ease: 'power3.out' }
-    )
-    .to({}, { duration: 1 })
-    .to(splashScreen, {
-      y: '-100%',
-      duration: 0.9,
-      ease: 'power3.inOut',
-      onComplete: () => {
-        splashScreen.style.display = 'none';
-      }
-    })
-    .fromTo(
-      '.product-card',
-      { y: 20, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.48,
-        stagger: 0.1,
-        ease: 'power3.out',
-        clearProps: 'all'
-      },
-      '-=0.15'
-    );
-}
-
-function initEvents() {
-  backdrop.addEventListener('click', closeBottomSheet);
-  sheetClose.addEventListener('click', closeBottomSheet);
-  sheetHandle.addEventListener('click', closeBottomSheet);
-
-  increaseQty.addEventListener('click', () => {
-    if (!state.selectedItem) return;
-    state.quantity += 1;
-    updateSheetTotals();
-  });
-
-  decreaseQty.addEventListener('click', () => {
-    if (!state.selectedItem || state.quantity === 1) return;
-    state.quantity -= 1;
-    updateSheetTotals();
-  });
-
-  addToOrderBtn.addEventListener('click', () => {
-    if (!state.selectedItem) return;
-    addToOrderBtn.animate(
-      [
-        { transform: 'scale(1)' },
-        { transform: 'scale(0.98)' },
-        { transform: 'scale(1)' }
-      ],
-      { duration: 220, easing: 'ease-out' }
-    );
-  });
-
-  window.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && state.sheetOpen) {
-      closeBottomSheet();
-    }
-  });
-}
-
-function init() {
-  renderCategoryFilters();
-  renderProducts();
-  initEvents();
-  // Intro animation disabled: bootSplashSequence is not run on load.
-}
-
-init();

@@ -1,119 +1,117 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Céleste Café — Artisan Menu</title>
-    <meta
-      name="description"
-      content="Premium mobile-first digital menu for Céleste Café built with vanilla HTML, CSS, JavaScript, and GSAP."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <div class="splash-screen hidden" id="splashScreen" aria-hidden="true">
-        <div class="splash-screen__inner">
-          <p class="splash-screen__tag">Artisan Crêpes · Specialty Coffee · Premium Experience</p>
-        </div>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mehdi — Crêpes &amp; Drinks</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ============ Hero (half viewport) ============ -->
+    <header class="hero">
+      <img class="hero-img" id="heroImg" alt="" />
+      <div class="hero-scrim"></div>
+      <div class="hero-content">
+        <span class="hero-kicker">Fait minute · Marrakech</span>
+        <h1 class="hero-title">Mehdi<br>Crêpes &amp; Drinks</h1>
+        <p class="hero-sub">Café de spécialité, crêpes garnies et boissons fraîches, préparés à la minute.</p>
       </div>
 
-      <div class="backdrop hidden" id="backdrop"></div>
+      <button class="cart-badge" id="cartBadge" aria-label="Voir la commande">
+        <span class="cart-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20.5L6 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>
+        </span>
+        <span class="cart-badge-count" id="cartCount">0</span>
+      </button>
+    </header>
 
-      <main class="app" id="app">
-        <header class="header glass-panel">
-          <div class="header__top">
-            <div class="brand">
-              <div>
-                <p class="eyebrow">Maison artisanale</p>
-                <h1>Céleste Café</h1>
-              </div>
-            </div>
-          </div>
+    <!-- ============ Filters ============ -->
+    <nav class="filter-row filter-row--main" id="groupBar" aria-label="Catégorie"></nav>
+    <nav class="filter-row filter-row--sub" id="subBar" aria-label="Sous-catégorie"></nav>
 
-          <div class="hero">
-            <div>
-              <p class="eyebrow">Curated digital menu</p>
-              <h2>Handcrafted indulgence, elevated for mobile.</h2>
-            </div>
-            <p class="hero__copy">
-              Explore refined crêpes, signature beverages, and gourmet waffle creations with fluid touch-first interactions.
-            </p>
-          </div>
+    <!-- ============ Product list ============ -->
+    <main class="menu-section" id="menuSection"></main>
 
-          <nav class="category-nav" aria-label="Menu categories">
-            <div class="category-nav__track" id="categoryFilters"></div>
-          </nav>
-        </header>
+    <footer class="site-footer">Prix en dirhams (dh)</footer>
+  </div>
 
-        <section class="menu-section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Seasonal selection</p>
-              <h3 id="resultsTitle">All Menu</h3>
-            </div>
-            <p class="section-heading__meta" id="resultsCount">0 items</p>
-          </div>
-
-          <div class="product-list" id="productList" aria-live="polite"></div>
-        </section>
-      </main>
-
-      <aside class="bottom-sheet" id="bottomSheet" aria-hidden="true" aria-labelledby="sheetTitle" role="dialog">
-        <div class="bottom-sheet__handle" id="sheetHandle"></div>
-        <button class="bottom-sheet__close" id="sheetClose" type="button" aria-label="Close product details">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4 6.4 5Z" />
-          </svg>
+  <!-- ============ Product sheet ============ -->
+  <div class="overlay" id="overlay"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-scroll">
+      <div class="sheet-hero">
+        <div class="sheet-hero-icon" id="sheetImg"></div>
+        <button class="sheet-close" id="sheetClose" aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
+      </div>
 
-        <div class="bottom-sheet__media-wrap">
-          <img id="sheetImage" class="bottom-sheet__image" src="" alt="" />
+      <div class="sheet-body">
+        <span class="sheet-eyebrow" id="sheetEyebrow"></span>
+        <h2 class="sheet-title" id="sheetTitle"></h2>
+        <p class="sheet-desc" id="sheetDesc"></p>
+
+        <div class="sheet-extras" id="sheetExtras">
+          <h3 class="sheet-extras-title">Extras</h3>
+          <div class="extra-list" id="sheetExtrasList"></div>
         </div>
 
-        <div class="bottom-sheet__content">
-          <div class="bottom-sheet__intro">
-            <div>
-              <p class="eyebrow" id="sheetCategory"></p>
-              <h4 id="sheetTitle"></h4>
-            </div>
-            <span class="price-pill" id="sheetPrice"></span>
-          </div>
-
-          <p class="bottom-sheet__description" id="sheetDescription"></p>
-
-          <section class="extras" id="extrasSection">
-            <div class="extras__header">
-              <h5>Extras</h5>
-              <span>Customize your order</span>
-            </div>
-            <div class="extras__list" id="extrasList"></div>
-          </section>
-
-          <div class="sheet-footer">
-            <div class="quantity-selector" aria-label="Quantity selector">
-              <button type="button" id="decreaseQty" aria-label="Decrease quantity">−</button>
-              <span id="quantityValue">1</span>
-              <button type="button" id="increaseQty" aria-label="Increase quantity">+</button>
-            </div>
-
-            <button type="button" class="cta-button" id="addToOrderBtn">
-              Add to order
-              <span id="ctaTotal">$0.00</span>
-            </button>
+        <div class="qty-row">
+          <span class="qty-label">Quantité</span>
+          <div class="qty-stepper">
+            <button class="qty-btn" id="qtyMinus" aria-label="Diminuer">−</button>
+            <span class="qty-value" id="qtyValue">1</span>
+            <button class="qty-btn" id="qtyPlus" aria-label="Augmenter">+</button>
           </div>
         </div>
-      </aside>
+      </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/main.js"></script>
-  </body>
+    <div class="sheet-footer">
+      <button class="sheet-cta" id="sheetAddBtn">
+        <span>Ajouter à la commande</span>
+        <span class="sheet-cta-price" id="sheetAddPrice">0 dh</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ Cart sheet ============ -->
+  <div class="overlay" id="cartOverlay"></div>
+  <div class="sheet sheet--cart" id="cartSheet" role="dialog" aria-modal="true">
+    <div class="sheet-handle-row">
+      <h2 class="cart-title">Votre commande</h2>
+      <button class="sheet-close sheet-close--static" id="cartCloseBtn" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet-scroll">
+      <p class="cart-empty" id="cartEmpty">Votre commande est vide pour le moment.</p>
+      <div class="cart-list" id="cartList"></div>
+    </div>
+
+    <div class="sheet-footer sheet-footer--cart">
+      <button class="cart-clear" id="cartClearBtn">Vider</button>
+      <div class="cart-total">
+        <span>Total</span>
+        <strong id="cartGrandTotal">0 dh</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Toast ============ -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
 </html>

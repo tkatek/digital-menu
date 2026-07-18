@@ -1,145 +1,120 @@
-const menuItems = [
-  {
-    id: 'cs-001',
-    name: 'Crêpes Nutella',
-    category: 'Crêpes Sucrés',
-    price: 14,
-    currency: 'dh',
-    image: 'assets/images/creep.jpg',
-    description:
-      'Our signature thin and delicate crêpe, generously filled with warm, silky Nutella and finished for an indulgent artisan bite.',
-    extras: [
-      { id: 'strawberry', name: 'Add Strawberry', price: 2 },
-      { id: 'banana', name: 'Add Banana', price: 1.5 },
-      { id: 'extra-nutella', name: 'Extra Nutella', price: 2.5 }
-    ]
-  },
-  {
-    id: 'cs-002',
-    name: 'Crêpes Pistache Framboise',
-    category: 'Crêpes Sucrés',
-    price: 18,
-    currency: 'dh',
-    image: 'assets/images/drin k.jpg',
-    description:
-      'Silky pistachio cream, fresh raspberries, and a whisper of vanilla sugar layered over feather-light artisan crêpes.',
-    extras: [
-      { id: 'raspberries', name: 'Extra Framboise', price: 3 },
-      { id: 'pistachio', name: 'Pistachio Crunch', price: 2.5 }
-    ]
-  },
-  {
-    id: 'bc-001',
-    name: 'Cappuccino Signature',
-    category: 'Boisson chaude',
-    price: 16,
-    currency: 'dh',
-    image: 'assets/images/creep.jpg',
-    description:
-      'A velvety espresso-forward cappuccino with microfoam texture and toasted cacao notes, crafted for slow mornings.',
-    extras: [
-      { id: 'oat-milk', name: 'Oat Milk', price: 2 },
-      { id: 'caramel', name: 'Caramel Drizzle', price: 1.5 }
-    ]
-  },
-  {
-    id: 'bc-002',
-    name: 'Spanish Latte',
-    category: 'Boisson chaude',
-    price: 19,
-    currency: 'dh',
-    image: 'assets/images/drin k.jpg',
-    description:
-      'Double espresso softened with steamed milk and sweet condensed milk for a polished, dessert-like finish.',
-    extras: [
-      { id: 'cinnamon', name: 'Cinnamon Dust', price: 1 },
-      { id: 'vanilla-foam', name: 'Vanilla Foam', price: 2 }
-    ]
-  },
-  {
-    id: 'bf-001',
-    name: 'Iced Vanilla Latte',
-    category: 'Boisson froide',
-    price: 22,
-    currency: 'dh',
-    image: 'assets/images/creep.jpg',
-    description:
-      'House vanilla, chilled espresso, and creamy milk poured over crystal ice for a clean, elegant refreshment.',
-    extras: [
-      { id: 'cold-foam', name: 'Cold Foam', price: 2.5 },
-      { id: 'espresso-shot', name: 'Extra Espresso', price: 3 }
-    ]
-  },
-  {
-    id: 'bf-002',
-    name: 'Berry Hibiscus Tonic',
-    category: 'Boisson froide',
-    price: 20,
-    currency: 'dh',
-    image: 'assets/images/drin k.jpg',
-    description:
-      'Bright hibiscus infusion with wild berry reduction and sparkling tonic for a floral, jewel-toned finish.',
-    extras: [
-      { id: 'mint', name: 'Fresh Mint', price: 1 },
-      { id: 'lemon-zest', name: 'Candied Lemon Zest', price: 1.5 }
-    ]
-  },
-  {
-    id: 'cl-001',
-    name: 'Crêpe Dinde Fromage',
-    category: 'Crêpes Salés',
-    price: 25,
-    currency: 'dh',
-    image: 'assets/images/creep.jpg',
-    description:
-      'A savory artisan crêpe layered with smoked turkey, molten cheese, and a touch of mustard crème.',
-    extras: [
-      { id: 'egg', name: 'Farm Egg', price: 3 },
-      { id: 'cheese', name: 'Extra Fromage', price: 3.5 }
-    ]
-  },
-  {
-    id: 'cl-002',
-    name: 'Crêpe Saumon Fumé',
-    category: 'Crêpes Salés',
-    price: 31,
-    currency: 'dh',
-    image: 'assets/images/drin k.jpg',
-    description:
-      'Smoked salmon, dill crème fraîche, capers, and delicate greens wrapped in a warm buckwheat crêpe.',
-    extras: [
-      { id: 'avocado', name: 'Avocado Slices', price: 4 },
-      { id: 'microgreens', name: 'Microgreens', price: 2 }
-    ]
-  },
-  {
-    id: 'gw-001',
-    name: 'Gouffre Praliné Noisette',
-    category: 'Gouffre',
-    price: 24,
-    currency: 'dh',
-    image: 'assets/images/creep.jpg',
-    description:
-      'Golden waffle finished with hazelnut praline, roasted nuts, and a satin chocolate ribbon.',
-    extras: [
-      { id: 'ice-cream', name: 'Vanilla Ice Cream', price: 4 },
-      { id: 'hazelnut', name: 'Roasted Hazelnuts', price: 2 }
-    ]
-  },
-  {
-    id: 'gw-002',
-    name: 'Gouffre Fruits Rouges',
-    category: 'Gouffre',
-    price: 23,
-    currency: 'dh',
-    image: 'assets/images/drin k.jpg',
-    description:
-      'Crisp Belgian-style waffle topped with macerated berries, vanilla cream, and a velvet berry glaze.',
-    extras: [
-      { id: 'whipped-cream', name: 'Whipped Cream', price: 2 },
-      { id: 'berry-compote', name: 'Extra Berry Compote', price: 2.5 }
-    ]
-  }
+/* ==========================================================================
+   data.js — Menu content for "Mehdi Crêpes & Drinks"
+   Two-level taxonomy:
+     group  : "crepe" | "drinks"        (level-1 filter)
+     sub    : "crepe" | "gouffre"       (level-2 filter, when group = crepe)
+              "chaude" | "froide"       (level-2 filter, when group = drinks)
+     type   : "sucre" | "sale"          (used only to sub-head the crepe list)
+   ========================================================================== */
+
+// ---- Level-1 groups (top filter row) -------------------------------------
+const groupMeta = {
+  crepe:  { label: "Crêpes",   icon: "crepe", image: "assets/images/creep.jpg" },
+  drinks: { label: "Boissons", icon: "cup",   image: "assets/images/drink.jpg" }
+};
+const groupOrder = ["crepe", "drinks"];
+
+// ---- Level-2 subcategories (second filter row, contextual) ---------------
+const subMeta = {
+  crepe:   { label: "Crêpes",  icon: "crepe",  group: "crepe" },
+  gouffre: { label: "Gouffre", icon: "waffle", group: "crepe" },
+  chaude:  { label: "Chaude",  icon: "flame",  group: "drinks" },
+  froide:  { label: "Froide",  icon: "snow",   group: "drinks" }
+};
+const subOrder = {
+  crepe:  ["crepe", "gouffre"],
+  drinks: ["chaude", "froide"]
+};
+
+// ---- Real "Extras" pulled from the physical menu board --------------------
+// Sits between the Gouffre and Crêpes Salés columns on the board, so it's
+// applied to sweet crêpes + gouffres — not to savory crêpes or drinks.
+const extrasCatalog = [
+  { id: "nutella",  label: "Extra Nutella",      price: 3 },
+  { id: "banane",   label: "Extra banane",       price: 3 },
+  { id: "biscuit",  label: "Extra biscuit",      price: 5 },
+  { id: "fruitsec", label: "Extra fruits secs",  price: 7 },
+  { id: "fruits",   label: "Extra fruits",       price: 8 }
 ];
 
-const menuCategories = ['All', 'Boisson chaude', 'Boisson froide', 'Crêpes Sucrés', 'Crêpes Salés', 'Gouffre'];
+function describeItem(item) {
+  const d = {
+    crepe_sucre:  "Crêpe fine roulée minute, garnie généreusement.",
+    crepe_sale:   "Crêpe salée garnie, servie chaude à la commande.",
+    gouffre:      "Gaufre croustillante dehors, moelleuse dedans.",
+    chaude:       "Servi bien chaud, préparé minute au comptoir.",
+    froide:       "Servi frais, glaçons et bulles inclus."
+  };
+  if (item.sub === "crepe") return d["crepe_" + item.type];
+  return d[item.sub] || "Préparé minute, à savourer sur place.";
+}
+
+// price stored as a Number (dh) so totals can be computed live.
+const rawMenuData = [
+  // --- BOISSONS CHAUDES ---
+  { name: "Café espresso", group: "drinks", sub: "chaude", price: 8 },
+  { name: "Double espresso", group: "drinks", sub: "chaude", price: 12 },
+  { name: "Allongé", group: "drinks", sub: "chaude", price: 8 },
+  { name: "Ness-Ness", group: "drinks", sub: "chaude", price: 10 },
+  { name: "Café séparé", group: "drinks", sub: "chaude", price: 12 },
+  { name: "Cappuccino", group: "drinks", sub: "chaude", price: 10 },
+  { name: "Chocolate chaud", group: "drinks", sub: "chaude", price: 9 },
+  { name: "Café crème", group: "drinks", sub: "chaude", price: 10 },
+  { name: "Lait chaud", group: "drinks", sub: "chaude", price: 8 },
+  { name: "Lait avec lipton", group: "drinks", sub: "chaude", price: 9 },
+  { name: "Eau avec lipton", group: "drinks", sub: "chaude", price: 9 },
+  { name: "Lait avec Lwiza", group: "drinks", sub: "chaude", price: 10 },
+  { name: "Eau avec lwiza", group: "drinks", sub: "chaude", price: 8 },
+  { name: "Eau", group: "drinks", sub: "chaude", price: 3 },
+
+  // --- BOISSONS FROIDES ---
+  { name: "Jus de orange", group: "drinks", sub: "froide", price: 15 },
+  { name: "Milkshake au choix", group: "drinks", sub: "froide", price: 20 },
+  { name: "Ace coffee", group: "drinks", sub: "froide", price: 15 },
+  { name: "Mojito", group: "drinks", sub: "froide", price: 15 },
+  { name: "Jus banane", group: "drinks", sub: "froide", price: 15 },
+  { name: "Jus d'avocat", group: "drinks", sub: "froide", price: 18 },
+  { name: "Jus fraise", group: "drinks", sub: "froide", price: 18 },
+  { name: "Jus de citron", group: "drinks", sub: "froide", price: 12 },
+  { name: "Panaché", group: "drinks", sub: "froide", price: 18 },
+  { name: "Soda", group: "drinks", sub: "froide", price: 10 },
+
+  // --- CRÊPES SUCRÉS (extras allowed) ---
+  { name: "Crêpes Nutella", group: "crepe", sub: "crepe", type: "sucre", price: 14, extras: true },
+  { name: "Crêpes Nutella banane", group: "crepe", sub: "crepe", type: "sucre", price: 16, extras: true },
+  { name: "Crêpes Nutella lotus", group: "crepe", sub: "crepe", type: "sucre", price: 18, extras: true },
+  { name: "Crêpes Nutella lotus banane", group: "crepe", sub: "crepe", type: "sucre", price: 20, extras: true },
+  { name: "Crêpes kinder bueno", group: "crepe", sub: "crepe", type: "sucre", price: 20, extras: true },
+  { name: "Crêpes kinder bueno banane", group: "crepe", sub: "crepe", type: "sucre", price: 22, extras: true },
+  { name: "Crêpes Nutella Oreo", group: "crepe", sub: "crepe", type: "sucre", price: 18, extras: true },
+  { name: "Crêpes Nutella Oreo banane", group: "crepe", sub: "crepe", type: "sucre", price: 20, extras: true },
+  { name: "Crêpes Nutella kitkat", group: "crepe", sub: "crepe", type: "sucre", price: 18, extras: true },
+  { name: "Crêpes Nutella kitkat banane", group: "crepe", sub: "crepe", type: "sucre", price: 20, extras: true },
+  { name: "Crêpe Nutella Milka", group: "crepe", sub: "crepe", type: "sucre", price: 16, extras: true },
+  { name: "Crêpes Nutella Milka banane", group: "crepe", sub: "crepe", type: "sucre", price: 18, extras: true },
+  { name: "Crêpes Nutella fruits secs", group: "crepe", sub: "crepe", type: "sucre", price: 22, extras: true },
+  { name: "Crêpes Nutella fruits sec banane", group: "crepe", sub: "crepe", type: "sucre", price: 25, extras: true },
+  { name: "Crêpes Nutella fruits", group: "crepe", sub: "crepe", type: "sucre", price: 20, extras: true },
+  { name: "Crêpes Nutella konafa", group: "crepe", sub: "crepe", type: "sucre", price: 20, extras: true },
+  { name: "Crêpes mixte (sucré)", group: "crepe", sub: "crepe", type: "sucre", price: 30, extras: true },
+
+  // --- GOUFFRES (extras allowed) ---
+  { name: "Gouffre nature", group: "crepe", sub: "gouffre", price: 10, extras: true },
+  { name: "Gouffre Nutella", group: "crepe", sub: "gouffre", price: 15, extras: true },
+  { name: "Gouffre banane", group: "crepe", sub: "gouffre", price: 17, extras: true },
+  { name: "Gouffre + biscuit au choix", group: "crepe", sub: "gouffre", price: 22, extras: true },
+
+  // --- CRÊPES SALÉS (no sweet extras) ---
+  { name: "Crêpes fromage", group: "crepe", sub: "crepe", type: "sale", price: 20, extras: false },
+  { name: "Crêpes fromage dinde fumé", group: "crepe", sub: "crepe", type: "sale", price: 25, extras: false },
+  { name: "Crêpes viande haché", group: "crepe", sub: "crepe", type: "sale", price: 25, extras: false },
+  { name: "Crêpes dinde", group: "crepe", sub: "crepe", type: "sale", price: 20, extras: false },
+  { name: "Crêpes mixte (salé)", group: "crepe", sub: "crepe", type: "sale", price: 30, extras: false }
+];
+
+const menuData = rawMenuData.map((item, i) => ({
+  id: "item-" + i,
+  extras: false,
+  ...item,
+  desc: describeItem(item)
+}));
