@@ -59,7 +59,7 @@ const groupMeta = {
 const groupOrder = ["crepe", "drinks"];
 
 // Shown behind the title on first load, before a category is picked.
-const heroDefaultImage = "assets/images/empty hero.jpg";
+const heroDefaultImage = "assets/images/reda.jpeg";
 
 // ---- Level-2 subcategories (second filter row, contextual) ---------------
 const subMeta = {
