@@ -43,8 +43,8 @@ const shopConfig = {
     address: "Guéliz, Marrakech",          // shown on the footer "Nous trouver" card
     mapsUrl: "https://share.google/bBhcDVvnIbHkrM8rK", // real Google Maps share link
     hours: "Tous les jours · 9h – minuit",
-    instagramHandle: "",      // set to "" to hide the Instagram card
-    instagramUrl: "",
+    instagramHandle: "@reda_carpi",      // set to "" to hide the Instagram card
+    instagramUrl: "https://www.instagram.com/reda_carpi",
     facebookUrl: ""                        // set to your Page URL to show the Facebook icon, or leave "" to hide it
 };
 
