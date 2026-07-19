@@ -1,5 +1,5 @@
 /* ==========================================================================
-   data.js — Menu content for "Reda Carpi"
+   data.js — Menu content for "Adhen Crêpes"
    --------------------------------------------------------------------------
    This is the ONLY file you should need to touch day-to-day: add a dish,
    change a price, mark something popular, or attach a real photo — the
@@ -37,7 +37,7 @@
 // Instagram cards) — edit these six lines and the footer updates everywhere,
 // no HTML changes needed.
 const shopConfig = {
-    name: "Reda Carpi",
+    name: "Adhen Crêpes",
     whatsapp: "212774475007",
     phoneDisplay: "07 74 47 50 07",       // shown on the footer "Appeler" card
     address: "Guéliz, Marrakech",          // shown on the footer "Nous trouver" card
@@ -199,5 +199,6 @@ const menuData = rawMenuData.map((item, i) => {
     merged.image = merged.image || pickPhoto(merged);
     merged.desc = describeItem(merged);
     merged.sales = seededSales(merged);
+    merged.salesKey = "adhen-crepes-mrk-menu-" + merged.id; // used by the live sales counter, see main.js
     return merged;
 });

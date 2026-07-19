@@ -1,5 +1,5 @@
 /* ==========================================================================
-   main.js — Reda Carpi — behavior
+   main.js — Adhen Crêpes — behavior
    --------------------------------------------------------------------------
    The client browses, adds dishes to a cart (from the card's + stepper or
    from the detail sheet with extras), reviews the cart, then taps
@@ -122,6 +122,64 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeExtras = new Set();
 
     /* ==========================================================================
+       1b. LIVE SALES COUNTER
+       "X commandes ce mois" is no longer a fixed number: each item keeps a
+       baseline (item.sales, seeded in data.js so a brand-new item doesn't
+       show "0") and a *real* live count on top, stored in a free public
+       hit-counter (countapi.mileshilliard.com — no signup/keys, one request
+       per item per unique key). Every time someone taps "Commander via
+       WhatsApp", we hit the counter once per unit ordered, so the number
+       genuinely grows with real orders.
+       If the API is slow/unreachable the site just keeps showing the
+       baseline number — nothing else breaks.
+       ========================================================================== */
+    const SALES_API = "https://countapi.mileshilliard.com/api/v1";
+    const liveSalesCache = {};       // itemId -> live hit count already fetched
+    const fetchedSalesIds = new Set(); // itemIds we've already requested, so we
+    // don't re-fetch the same item every time the list re-renders
+
+    function salesDisplay(item) {
+        return item.sales + (liveSalesCache[item.id] || 0);
+    }
+
+    function refreshSalesDOM(item) {
+        document.querySelectorAll(`[data-sales-for="${item.id}"]`).forEach(el => {
+            el.textContent = salesDisplay(item) + " commandes ce mois";
+        });
+    }
+
+    async function fetchLiveSales(item) {
+        if (fetchedSalesIds.has(item.id)) return;
+        fetchedSalesIds.add(item.id);
+        try {
+            const res = await fetch(`${SALES_API}/get/${item.salesKey}`);
+            if (res.ok) {
+                const data = await res.json();
+                liveSalesCache[item.id] = parseInt(data.value, 10) || 0;
+                refreshSalesDOM(item);
+            }
+            // 404 just means no one has ordered it yet — baseline stays as-is.
+        } catch (e) {
+            // Offline or the free API is down — keep showing the baseline number.
+        }
+    }
+
+    function loadLiveSalesFor(items) {
+        items.forEach(fetchLiveSales);
+    }
+
+    function registerSale(item, qty) {
+        // Bump it locally right away so the number visibly grows the instant
+        // checkout happens, then actually persist it in the background —
+        // one hit per unit ordered.
+        liveSalesCache[item.id] = (liveSalesCache[item.id] || 0) + qty;
+        refreshSalesDOM(item);
+        for (let i = 0; i < qty; i++) {
+            fetch(`${SALES_API}/hit/${item.salesKey}`).catch(() => {});
+        }
+    }
+
+    /* ==========================================================================
        2. CART — state, merge-by-signature, totals, WhatsApp message
        ========================================================================== */
     function lineSignature(itemId, extraIds) {
@@ -190,6 +248,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openWhatsAppCheckout() {
         if (!cart.length) return;
+        cart.forEach(line => {
+            const item = menuData.find(i => i.id === line.itemId);
+            if (item) registerSale(item, line.qty);
+        });
         const text = encodeURIComponent(buildWhatsAppMessage());
         const url = `https://wa.me/${shopConfig.whatsapp}?text=${text}`;
         window.open(url, "_blank", "noopener");
@@ -353,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="card-body">
             <span class="card-name">${item.name}</span>
             <span class="card-desc">${item.desc}</span>
-            <span class="card-sales">${Icons.trending}${item.sales} commandes ce mois</span>
+            <span class="card-sales">${Icons.trending}<span data-sales-for="${item.id}">${salesDisplay(item)} commandes ce mois</span></span>
           </span>
         </button>
         <span class="card-side" data-side-for="${item.id}">
@@ -469,6 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         bindCardEvents();
         animateListIn();
+        loadLiveSalesFor(items);
     }
 
     function bindCardEvents() {
@@ -551,7 +614,9 @@ document.addEventListener("DOMContentLoaded", () => {
         sheetTitle.textContent = item.name;
         sheetBasePrice.textContent = item.price + " dh";
         sheetDesc.textContent = item.desc;
-        sheetSalesText.textContent = item.sales + " commandes ce mois";
+        sheetSalesText.dataset.salesFor = item.id;
+        sheetSalesText.textContent = salesDisplay(item) + " commandes ce mois";
+        fetchLiveSales(item);
 
         if (item.extras) {
             sheetExtras.style.display = "block";
