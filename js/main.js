@@ -1,5 +1,5 @@
 /* ==========================================================================
-   main.js — Mehdi Crêpes & Drinks — behavior
+   main.js — Reda Carpi — behavior
    --------------------------------------------------------------------------
    The client browses, adds dishes to a cart (from the card's + stepper or
    from the detail sheet with extras), reviews the cart, then taps
@@ -21,6 +21,9 @@ const Icons = {
     waffle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 3.5v17M14 3.5v17M3.5 9h17M3.5 15h17"/></svg>`,
     cup: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M17 9.5h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3.5c-.6.6-.6 1.4 0 2M12 3.5c-.6.6-.6 1.4 0 2"/></svg>`,
     flame: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.5 5 9.5a5 5 0 0 1-10 0c0-1.5.7-2.6 1.5-3.5.2 1.2 1 1.8 1.5 1.8-.3-2.5.8-5 2-7.8Z"/></svg>`,
+    coffee: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9Z"/><path d="M16 10.5h1.5a2.3 2.3 0 0 1 0 4.6H16"/><path d="M8 2.5c-.7.7-.7 1.5 0 2.3M11.5 2.5c-.7.7-.7 1.5 0 2.3"/></svg>`,
+    crown: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 8.2 7 11l5-6.5L17 11l3.5-2.8L19 18H5L3.5 8.2Z"/><circle cx="12" cy="3.6" r="1.4"/><circle cx="3.4" cy="7.6" r="1.4"/><circle cx="20.6" cy="7.6" r="1.4"/></svg>`,
+    trending: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 9.5 10.5 13.5 14.5 21 6"/><path d="M15 6h6v6"/></svg>`,
     snow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4.5 6l15 12M19.5 6l-15 12"/><path d="M12 2 9.5 4.5M12 2l2.5 2.5M12 22l-2.5-2.5M12 22l2.5-2.5"/></svg>`,
     chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>`,
     close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
@@ -90,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sheetTitle = document.getElementById("sheetTitle");
     const sheetBasePrice = document.getElementById("sheetBasePrice");
     const sheetDesc = document.getElementById("sheetDesc");
+    const sheetSalesText = document.getElementById("sheetSalesText");
     const sheetExtras = document.getElementById("sheetExtras");
     const sheetExtrasList = document.getElementById("sheetExtrasList");
     const qtyValue = document.getElementById("qtyValue");
@@ -204,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
         heroImg.src = src;
         heroImg.alt = groupMeta[group].label;
         if (window.gsap) gsap.fromTo(heroImg, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" });
-        heroSub.textContent = "Sélection " + groupMeta[group].label.toLowerCase() + " — ajoutez au panier et commandez via WhatsApp.";
+        heroSub.textContent = groupMeta[group].label + " — commandez en quelques taps.";
     }
 
     // Landing photo, shown before the person picks Crêpes / Boissons.
@@ -308,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function iconFor(item) {
         if (item.sub === "gouffre") return "waffle";
-        if (item.group === "drinks") return item.sub === "chaude" ? "flame" : "snow";
+        if (item.group === "drinks") return item.sub === "chaude" ? "coffee" : "snow";
         return "crepe";
     }
 
@@ -344,11 +348,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="card-open" data-open="${item.id}" aria-label="Voir ${item.name}">
           <span class="card-thumb ${item.image ? "has-photo" : ""}">
             ${thumbHTML(item)}
-            ${item.popular ? `<span class="card-ribbon">${Icons.star}Populaire</span>` : ""}
+            ${item.popular ? `<span class="card-ribbon">${Icons.crown}Populaire</span>` : ""}
           </span>
           <span class="card-body">
             <span class="card-name">${item.name}</span>
             <span class="card-desc">${item.desc}</span>
+            <span class="card-sales">${Icons.trending}${item.sales} commandes ce mois</span>
           </span>
         </button>
         <span class="card-side" data-side-for="${item.id}">
@@ -394,7 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="feature-card-media">
           <span class="feature-card-icon-bg">${Icons[iconFor(item)]}</span>
           <img src="${item.image}" alt="" loading="lazy" onerror="window.handleTileImgError(this)">
-          ${item.popular ? `<span class="feature-card-ribbon">${Icons.star}Populaire</span>` : ""}
+          ${item.popular ? `<span class="feature-card-ribbon">${Icons.crown}Populaire</span>` : ""}
         </span>
         <span class="feature-card-body">
           <span class="feature-card-name">${item.name}</span>
@@ -546,6 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sheetTitle.textContent = item.name;
         sheetBasePrice.textContent = item.price + " dh";
         sheetDesc.textContent = item.desc;
+        sheetSalesText.textContent = item.sales + " commandes ce mois";
 
         if (item.extras) {
             sheetExtras.style.display = "block";

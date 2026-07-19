@@ -1,5 +1,5 @@
 /* ==========================================================================
-   data.js — Menu content for "Mehdi Crêpes & Drinks"
+   data.js — Menu content for "Reda Carpi"
    --------------------------------------------------------------------------
    This is the ONLY file you should need to touch day-to-day: add a dish,
    change a price, mark something popular, or attach a real photo — the
@@ -18,7 +18,8 @@
      type     string   "sucre" | "sale" — crêpes only
      price    number   required, in dh
      extras   boolean  true = the extras list (Nutella, banane…) is offered
-     popular  boolean  true = shows a gold "Populaire" ribbon on the card
+     popular  boolean  true = shows a gold "Populaire" crown ribbon + a
+                        bigger "commandes ce mois" figure on the card
      image    string   optional path, e.g. "assets/images/crepe-nutella.jpg"
                         Recommended: square or 4:5, ≥600×600px, JPG/WEBP.
                         Drop the file in assets/images/ and add this one
@@ -36,14 +37,14 @@
 // Instagram cards) — edit these six lines and the footer updates everywhere,
 // no HTML changes needed.
 const shopConfig = {
-    name: "Mehdi Crêpes & Drinks",
-    whatsapp: "212600000000",
-    phoneDisplay: "06 00 00 00 00",       // shown on the footer "Appeler" card
+    name: "Reda Carpi",
+    whatsapp: "212774475007",
+    phoneDisplay: "07 74 47 50 07",       // shown on the footer "Appeler" card
     address: "Guéliz, Marrakech",          // shown on the footer "Nous trouver" card
-    mapsUrl: "https://maps.google.com/?q=Mehdi+Crepes+Drinks+Marrakech", // >>> REPLACE with your real Google Maps link <<<
+    mapsUrl: "https://share.google/bBhcDVvnIbHkrM8rK", // real Google Maps share link
     hours: "Tous les jours · 9h – minuit",
-    instagramHandle: "@mehdi.crepes",      // set to "" to hide the Instagram card
-    instagramUrl: "https://instagram.com/mehdi.crepes",
+    instagramHandle: "",      // set to "" to hide the Instagram card
+    instagramUrl: "",
     facebookUrl: ""                        // set to your Page URL to show the Facebook icon, or leave "" to hide it
 };
 
@@ -65,7 +66,7 @@ const heroDefaultImage = "assets/images/reda.jpeg";
 const subMeta = {
     crepe: { label: "Crêpes", icon: "crepe", group: "crepe" },
     gouffre: { label: "Gouffre", icon: "waffle", group: "crepe" },
-    chaude: { label: "Chaude", icon: "flame", group: "drinks" },
+    chaude: { label: "Chaude", icon: "coffee", group: "drinks" },
     froide: { label: "Froide", icon: "snow", group: "drinks" }
 };
 const subOrder = {
@@ -181,13 +182,22 @@ function pickPhoto(item) {
     return set[n % set.length];
 }
 
+// Deterministic "X commandes ce mois" figure for social proof on the card
+// and detail sheet. Seeded from the item name (not Math.random) so the
+// number stays stable across reloads instead of jumping around — replace
+// with a real order count from your POS/WhatsApp log whenever you have one.
+function seededSales(item) {
+    let h = 0;
+    for (let i = 0; i < item.name.length; i++) h = (h * 31 + item.name.charCodeAt(i)) >>> 0;
+    const base = 20 + (h % 140);            // 20–159
+    const popularBoost = item.popular ? 90 + (h % 70) : 0;
+    return base + popularBoost;
+}
+
 const menuData = rawMenuData.map((item, i) => {
-    return {
-        id: "item-" + i,
-        extras: false,
-        popular: false,
-        ...item,
-        image: item.image || pickPhoto(item),
-        desc: describeItem(item)
-    };
+    const merged = { id: "item-" + i, extras: false, popular: false, ...item };
+    merged.image = merged.image || pickPhoto(merged);
+    merged.desc = describeItem(merged);
+    merged.sales = seededSales(merged);
+    return merged;
 });

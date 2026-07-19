@@ -1,5 +1,5 @@
 /* ==========================================================================
-   styles.css — Mehdi Crêpes & Drinks
+   styles.css — Reda Carpi
    --------------------------------------------------------------------------
    Boutique-menu direction, rebranded to match the physical boards: a hot
    magenta-pink (from "Boisson Mehdi") over a deep purple (from "Crêpe
@@ -176,7 +176,7 @@ p {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-end;
     background: radial-gradient(120% 90% at 20% 0%, #9a1f7a 0%, #4a1350 58%, #2b1030 100%);
 }
 
@@ -192,7 +192,11 @@ p {
 .hero-scrim {
     position: absolute;
     inset: 0;
-    background: linear-gradient(185deg, rgba(43, 16, 48, 0.2) 0%, rgba(43, 16, 48, 0.58) 62%, rgba(24, 8, 26, 0.92) 100%);
+    background: linear-gradient(180deg,
+            rgba(43, 16, 48, 0.04) 0%,
+            rgba(43, 16, 48, 0.06) 32%,
+            rgba(43, 16, 48, 0.42) 66%,
+            rgba(20, 8, 22, 0.9) 100%);
 }
 
 .hero-frame {
@@ -217,7 +221,7 @@ p {
 .hero-content {
     position: relative;
     z-index: 2;
-    padding: 0 24px 22px;
+    padding: 0 24px 52px;
     color: #fff;
 }
 
@@ -265,9 +269,11 @@ p {
 
 .hero-sub {
     font-size: 14px;
+    font-weight: 600;
     line-height: 1.55;
-    color: rgba(255, 255, 255, 0.86);
+    color: rgba(255, 255, 255, 0.92);
     max-width: 38ch;
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .hero-scroll-cue {
@@ -828,6 +834,22 @@ p {
     overflow: hidden;
 }
 
+.card-sales {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold-2);
+}
+
+.card-sales svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+}
+
 .card-side {
     flex-shrink: 0;
     display: flex;
@@ -1039,6 +1061,7 @@ p {
     right: 60px;
     z-index: 2;
     align-items: center;
+    gap: 5px;
     padding: 6px 12px;
     border-radius: 999px;
     font-size: 11px;
@@ -1048,6 +1071,12 @@ p {
     color: #3c2308;
     background: var(--gold-foil);
     box-shadow: 0 4px 12px rgba(169, 115, 47, 0.4);
+}
+
+.sheet-popular-tag svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
 }
 
 .sheet-close {
@@ -1113,6 +1142,25 @@ p {
     line-height: 1.6;
     color: var(--ink-soft);
     margin-bottom: 6px;
+}
+
+.sheet-sales {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 18px;
+    padding: 6px 12px 6px 10px;
+    border-radius: 999px;
+    background: var(--gold-soft);
+    color: var(--gold-2);
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+.sheet-sales svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .sheet-extras {
