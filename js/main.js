@@ -41,7 +41,8 @@ const Icons = {
     search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m20 20-4.3-4.3"/></svg>`,
     arrowRight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15.5M13.5 5.5 20 12l-6.5 6.5"/></svg>`,
     facebook: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.6h2.6l.4-3H13.5V8.4c0-.9.2-1.5 1.5-1.5h1.6V4.2C16.3 4.1 15.3 4 14.2 4c-2.3 0-3.9 1.4-3.9 4v2.4H7.7v3h2.6V21h3.2Z"/></svg>`,
-    sparkle: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c.5 3.4 1.4 5.6 2.8 7 1.4 1.4 3.6 2.3 7 2.8-3.4.5-5.6 1.4-7 2.8-1.4 1.4-2.3 3.6-2.8 7-.5-3.4-1.4-5.6-2.8-7-1.4-1.4-3.6-2.3-7-2.8 3.4-.5 5.6-1.4 7-2.8 1.4-1.4 2.3-3.6 2.8-7Z"/></svg>`
+    sparkle: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c.5 3.4 1.4 5.6 2.8 7 1.4 1.4 3.6 2.3 7 2.8-3.4.5-5.6 1.4-7 2.8-1.4 1.4-2.3 3.6-2.8 7-.5-3.4-1.4-5.6-2.8-7-1.4-1.4-3.6-2.3-7-2.8 3.4-.5 5.6-1.4 7-2.8 1.4-1.4 2.3-3.6 2.8-7Z"/></svg>`,
+    home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v9a1 1 0 0 0 1 1h3v-5h6v5h3a1 1 0 0 0 1-1v-9"/></svg>`
 };
 
 // Global fallback: if a real photo 404s, swap the card thumbnail for the
@@ -307,26 +308,43 @@ document.addEventListener("DOMContentLoaded", () => {
        4. FILTERS
        ========================================================================== */
     function selectGroup(g) {
-        const isFirstPick = state.group === null;
         if (g === state.group) return;
         state.group = g;
         state.sub = subOrder[g][0];
         setHeroImage(g);
         hideScrollCue();
         renderGroupBar();
-        renderSubBar(isFirstPick);
+        renderSubBar(true);
         renderList();
     }
 
+    function goHome() {
+        state.group = null;
+        state.sub = null;
+        setDefaultHeroImage();
+        scrollCue.style.display = "flex";
+        renderGroupBar();
+        renderSubBar(false);
+        renderList();
+        bounceScrollCue();
+    }
+
     function renderGroupBar() {
-        groupBar.innerHTML = groupOrder.map(g => {
+        const hasGroup = state.group !== null;
+        // When a group is selected, only show the home button — pills disappear
+        const pills = hasGroup ? "" : groupOrder.map(g => {
             const meta = groupMeta[g];
             return `
-        <button class="pill pill--lg ${state.group === g ? "is-active" : ""}" data-group="${g}">
+        <button class="pill pill--lg" data-group="${g}">
           <span class="pill-icon">${Icons[meta.icon]}</span>
           <span>${meta.label}</span>
         </button>`;
         }).join("");
+
+        groupBar.innerHTML = `<button class="filter-home-btn ${hasGroup ? "is-visible" : ""}" id="homeBtn" aria-label="Accueil">${Icons.home}</button>` + pills;
+
+        const homeEl = document.getElementById("homeBtn");
+        if (homeEl) homeEl.addEventListener("click", goHome);
 
         groupBar.querySelectorAll(".pill").forEach(btn => {
             btn.addEventListener("click", () => selectGroup(btn.dataset.group));
