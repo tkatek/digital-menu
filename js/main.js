@@ -405,6 +405,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function cardHTML(item) {
+        // Generate random stars (1-5)
+        const stars = Math.floor(Math.random() * 5) + 1;
+        // Sample review comments
+        const comments = [
+            'Délicieux!', 
+            'Très bon', 
+            'Je recommande', 
+            'Parfait', 
+            'À essayer',
+            'Excellent',
+            'Super bon',
+            'Adoré!'
+        ];
+        const randomComment = comments[Math.floor(Math.random() * comments.length)];
+        
         return `
       <div class="card" data-id="${item.id}">
         <button class="card-open" data-open="${item.id}" aria-label="Voir ${item.name}">
@@ -416,6 +431,14 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="card-name">${item.name}</span>
             <span class="card-desc">${item.desc}</span>
             <span class="card-sales">${Icons.trending}<span data-sales-for="${item.id}">${salesDisplay(item)} commandes ce mois</span></span>
+            <div class="card-reviews">
+              <div class="review-stars">
+                ${Array.from({length: 5}, (_, i) => 
+                  `<span class="star ${i < stars ? 'filled' : ''}">${Icons.star}</span>`
+                ).join('')}
+              </div>
+              <div class="review-comment">${randomComment}</div>
+            </div>
           </span>
         </button>
         <span class="card-side" data-side-for="${item.id}">
