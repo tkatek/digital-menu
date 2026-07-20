@@ -407,8 +407,30 @@ p {
     color: var(--ink);
     background: var(--surface);
     border: 1.5px solid var(--line);
-    box-shadow: var(--shadow-card);
-    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+    box-shadow: 0 4px 12px rgba(43, 16, 48, 0.08);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.pill:hover {
+    box-shadow: 0 6px 16px rgba(43, 16, 48, 0.12);
+    transform: translateY(-1px);
+    background: var(--cream);
+}
+
+.pill.is-active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(224, 21, 122, 0.3);
+    transform: translateY(0);
+}
+
+.pill.is-active:hover {
+    box-shadow: 0 10px 24px rgba(224, 21, 122, 0.36);
+}
+
+.pill:active {
+    transform: scale(0.96);
 }
 
 .pill:active {
@@ -786,9 +808,20 @@ p {
     min-height: 112px;
     background: var(--surface);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 8px 24px rgba(43, 16, 48, 0.12);
     border: 1px solid var(--line);
-    transition: box-shadow 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card:hover {
+    box-shadow: 0 12px 32px rgba(43, 16, 48, 0.18);
+    transform: translateY(-2px);
+    border-color: var(--accent-soft);
+}
+
+.card:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 18px rgba(43, 16, 48, 0.14);
 }
 
 .card-open {
@@ -816,6 +849,20 @@ p {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-thumb:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(224, 21, 122, 0.2);
+}
+
+.card-thumb img {
+    transition: transform 0.3s ease;
+}
+
+.card-thumb:hover img {
+    transform: scale(1.1);
 }
 
 .card-thumb-icon {

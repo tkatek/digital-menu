@@ -355,8 +355,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const s = btn.dataset.sub;
                 if (s === state.sub) return;
                 state.sub = s;
-                renderSubBar(false);
                 renderList();
+                // Don't re-render the sub bar to prevent flickering
+                // Just update active states
+                subBar.querySelectorAll(".pill").forEach(pill => {
+                    pill.classList.toggle("is-active", pill.dataset.sub === s);
+                });
             });
         });
 
